@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Star, ShoppingCart, Eye } from 'lucide-react'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 interface Product {
   id: string
@@ -15,6 +16,7 @@ interface Product {
 
 export function FeaturedProducts() {
   const [products, setProducts] = useState<Product[]>([])
+  const { t } = useLanguage()
 
   useEffect(() => {
     // Simular carga de productos
@@ -56,7 +58,7 @@ export function FeaturedProducts() {
   }, [])
 
   const getConditionText = (condition: string) => {
-    return condition === 'NEW' ? 'Nuevo' : 'Usado'
+    return condition === 'NEW' ? t.products.new : t.products.used
   }
 
   const getConditionColor = (condition: string) => {
@@ -68,10 +70,10 @@ export function FeaturedProducts() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Productos Destacados
+            {t.products.title}
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Descubre nuestros productos más populares y mejor valorados
+            {t.products.subtitle}
           </p>
         </div>
 
@@ -122,7 +124,7 @@ export function FeaturedProducts() {
                     className="flex-1 bg-primary-600 text-white py-2 px-4 rounded-lg text-center hover:bg-primary-700 transition-colors flex items-center justify-center"
                   >
                     <Eye className="w-4 h-4 mr-2" />
-                    Ver
+                    {t.products.view}
                   </Link>
                   <button className="bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors">
                     <ShoppingCart className="w-4 h-4" />

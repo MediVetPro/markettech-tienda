@@ -1,17 +1,21 @@
+'use client'
+
 import { Users, Award, Shield, Heart } from 'lucide-react'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 export default function AboutPage() {
+  const { t } = useLanguage()
+
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-primary-50 to-primary-100 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-            Sobre <span className="text-primary-600">MarketTech</span>
+            {t.about.title} <span className="text-primary-600">{t.about.titleHighlight}</span>
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Tu tienda de tecnología de confianza, donde la calidad y el servicio al cliente 
-            son nuestra prioridad.
+            {t.about.subtitle}
           </p>
         </div>
       </section>
