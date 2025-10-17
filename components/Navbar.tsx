@@ -24,7 +24,7 @@ export function Navbar() {
             <Link href="/" className="text-gray-700 hover:text-primary-600 transition-colors">
               Inicio
             </Link>
-            <Link href="/products" className="text-gray-700 hover:text-primary-600 transition-colors">
+            <Link href="/products/static" className="text-gray-700 hover:text-primary-600 transition-colors">
               Productos
             </Link>
             <Link href="/about" className="text-gray-700 hover:text-primary-600 transition-colors">
@@ -68,7 +68,7 @@ export function Navbar() {
               <Link href="/" className="block px-3 py-2 text-gray-700 hover:text-primary-600">
                 Inicio
               </Link>
-              <Link href="/products" className="block px-3 py-2 text-gray-700 hover:text-primary-600">
+              <Link href="/products/static" className="block px-3 py-2 text-gray-700 hover:text-primary-600">
                 Productos
               </Link>
               <Link href="/about" className="block px-3 py-2 text-gray-700 hover:text-primary-600">

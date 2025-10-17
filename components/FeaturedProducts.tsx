@@ -134,12 +134,12 @@ export function FeaturedProducts() {
         </div>
 
         <div className="text-center mt-12">
-          <Link
-            href="/products"
-            className="bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors inline-flex items-center"
-          >
-            Ver Todos los Productos
-          </Link>
+            <Link
+              href="/products/static"
+              className="bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors inline-flex items-center"
+            >
+              Ver Todos los Productos
+            </Link>
         </div>
       </div>
     </section>
