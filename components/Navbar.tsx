@@ -47,11 +47,11 @@ export function Navbar() {
                 0
               </span>
             </Link>
-            <Link href="/login" className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 transition-colors">
+            <Link href="/login-static" className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 transition-colors">
               <LogIn className="w-5 h-5" />
               <span>{t.nav.login}</span>
             </Link>
-            <Link href="/admin" className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors">
+            <Link href="/admin-static" className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors">
               {t.nav.admin}
             </Link>
           </div>
@@ -89,11 +89,11 @@ export function Navbar() {
                   <ShoppingCart className="w-5 h-5 mr-2" />
                   {t.nav.cart}
                 </Link>
-                <Link href="/login" className="flex items-center px-3 py-2 text-gray-700 hover:text-primary-600">
+                <Link href="/login-static" className="flex items-center px-3 py-2 text-gray-700 hover:text-primary-600">
                   <LogIn className="w-5 h-5 mr-2" />
                   {t.nav.login}
                 </Link>
-                <Link href="/admin" className="block px-3 py-2 bg-primary-600 text-white rounded-lg mx-3 mt-2 text-center">
+                <Link href="/admin-static" className="block px-3 py-2 bg-primary-600 text-white rounded-lg mx-3 mt-2 text-center">
                   {t.nav.admin}
                 </Link>
               </div>
