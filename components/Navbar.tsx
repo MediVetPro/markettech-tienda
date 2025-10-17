@@ -93,6 +93,10 @@ export function Navbar() {
                   <LogIn className="w-5 h-5 mr-2" />
                   {t.nav.login}
                 </Link>
+                <Link href="/register-static" className="flex items-center px-3 py-2 text-gray-700 hover:text-primary-600">
+                  <User className="w-5 h-5 mr-2" />
+                  Criar Conta
+                </Link>
                 <Link href="/admin-static" className="block px-3 py-2 bg-primary-600 text-white rounded-lg mx-3 mt-2 text-center">
                   {t.nav.admin}
                 </Link>
