@@ -3,9 +3,12 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Menu, X, ShoppingCart, User, LogIn } from 'lucide-react'
+import { useLanguage } from '@/contexts/LanguageContext'
+import { LanguageSelector } from './LanguageSelector'
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
+  const { t } = useLanguage()
 
   return (
     <nav className="bg-white shadow-lg sticky top-0 z-50">
@@ -14,29 +17,30 @@ export function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">M</span>
+              <span className="text-white font-bold text-lg">S</span>
             </div>
-            <span className="text-xl font-bold text-gray-900">MarketTech</span>
+            <span className="text-xl font-bold text-gray-900">Smartesh</span>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <Link href="/" className="text-gray-700 hover:text-primary-600 transition-colors">
-              Inicio
+              {t.nav.home}
             </Link>
             <Link href="/products/static" className="text-gray-700 hover:text-primary-600 transition-colors">
-              Productos
+              {t.nav.products}
             </Link>
             <Link href="/about" className="text-gray-700 hover:text-primary-600 transition-colors">
-              Nosotros
+              {t.nav.about}
             </Link>
             <Link href="/contact" className="text-gray-700 hover:text-primary-600 transition-colors">
-              Contacto
+              {t.nav.contact}
             </Link>
           </div>
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
+            <LanguageSelector />
             <Link href="/cart" className="relative p-2 text-gray-700 hover:text-primary-600 transition-colors">
               <ShoppingCart className="w-6 h-6" />
               <span className="absolute -top-1 -right-1 bg-primary-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
@@ -45,10 +49,10 @@ export function Navbar() {
             </Link>
             <Link href="/login" className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 transition-colors">
               <LogIn className="w-5 h-5" />
-              <span>Iniciar Sesión</span>
+              <span>{t.nav.login}</span>
             </Link>
             <Link href="/admin" className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors">
-              Admin
+              {t.nav.admin}
             </Link>
           </div>
 
@@ -66,28 +70,31 @@ export function Navbar() {
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
               <Link href="/" className="block px-3 py-2 text-gray-700 hover:text-primary-600">
-                Inicio
+                {t.nav.home}
               </Link>
               <Link href="/products/static" className="block px-3 py-2 text-gray-700 hover:text-primary-600">
-                Productos
+                {t.nav.products}
               </Link>
               <Link href="/about" className="block px-3 py-2 text-gray-700 hover:text-primary-600">
-                Nosotros
+                {t.nav.about}
               </Link>
               <Link href="/contact" className="block px-3 py-2 text-gray-700 hover:text-primary-600">
-                Contacto
+                {t.nav.contact}
               </Link>
               <div className="border-t pt-3 mt-3">
+                <div className="px-3 py-2">
+                  <LanguageSelector />
+                </div>
                 <Link href="/cart" className="flex items-center px-3 py-2 text-gray-700 hover:text-primary-600">
                   <ShoppingCart className="w-5 h-5 mr-2" />
-                  Carrito
+                  {t.nav.cart}
                 </Link>
                 <Link href="/login" className="flex items-center px-3 py-2 text-gray-700 hover:text-primary-600">
                   <LogIn className="w-5 h-5 mr-2" />
-                  Iniciar Sesión
+                  {t.nav.login}
                 </Link>
                 <Link href="/admin" className="block px-3 py-2 bg-primary-600 text-white rounded-lg mx-3 mt-2 text-center">
-                  Admin
+                  {t.nav.admin}
                 </Link>
               </div>
             </div>
