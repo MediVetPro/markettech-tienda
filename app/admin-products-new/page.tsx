@@ -3,8 +3,6 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Upload, X, Plus } from 'lucide-react'
-import { useLanguage } from '@/contexts/LanguageContext'
-
 export default function AdminNewProductPage() {
   const [formData, setFormData] = useState({
     title: '',
@@ -17,8 +15,7 @@ export default function AdminNewProductPage() {
   })
   const [images, setImages] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const { t } = useLanguage()
-
+  
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({

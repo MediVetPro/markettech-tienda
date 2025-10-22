@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Eye, CheckCircle, XCircle, Clock, Package } from 'lucide-react'
-import { useLanguage } from '@/contexts/LanguageContext'
-
 interface Order {
   id: string
   customerName: string
@@ -23,8 +21,7 @@ export default function AdminOrdersPage() {
     completedOrders: 0,
     cancelledOrders: 0
   })
-  const { t } = useLanguage()
-
+  
   useEffect(() => {
     // Simular carga de datos
     const mockOrders: Order[] = [
@@ -240,7 +237,7 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        R$ {order.total.toLocaleString()}
+                        R$ {order.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

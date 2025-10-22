@@ -1,0 +1,746 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { BarChart3, TrendingUp, TrendingDown, DollarSign, Calendar, Filter, Download, RefreshCw } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
+
+interface AccountingData {
+  totalRevenue: number
+  totalOrders: number
+  averageOrderValue: number
+  revenueGrowth: number
+  ordersGrowth: number
+  monthlyRevenue: Array<{
+    month: string
+    revenue: number
+    orders: number
+  }>
+  topProducts: Array<{
+    id: string
+    title: string
+    revenue: number
+    sales: number
+  }>
+  recentTransactions: Array<{
+    id: string
+    type: 'sale' | 'commission' | 'payout'
+    amount: number
+    description: string
+    date: string
+  }>
+}
+
+interface FinancialReport {
+  totalRevenue: number
+  totalCosts: number
+  grossProfit: number
+  profitMargin: number
+  averageOrderValue: number
+  revenueByMonth: Array<{
+    month: string
+    revenue: number
+    costs: number
+    profit: number
+  }>
+  paymentMethods: Array<{
+    method: string
+    count: number
+    amount: number
+  }>
+}
+
+interface Filters {
+  dateFrom: string
+  dateTo: string
+  period: '7d' | '30d' | '90d' | '1y' | 'all'
+}
+
+export default function AccountingPage() {
+  const [data, setData] = useState<AccountingData | null>(null)
+  const [financialReport, setFinancialReport] = useState<FinancialReport | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [filters, setFilters] = useState<Filters>({
+    dateFrom: '',
+    dateTo: '',
+    period: '30d'
+  })
+  const { isAnyAdmin } = useAuth()
+
+  useEffect(() => {
+    if (!isAnyAdmin) {
+      window.location.href = '/'
+      return
+    }
+    
+    fetchAccountingData()
+  }, [isAnyAdmin, filters])
+
+  const fetchAccountingData = async () => {
+    try {
+      setLoading(true)
+      
+      const token = localStorage.getItem('smartesh_token')
+      if (!token) {
+        console.error('No hay token de autenticación')
+        return
+      }
+
+      // Calcular fechas para el reporte financiero
+      let startDate: string
+      let endDate: string = new Date().toISOString().split('T')[0]
+
+      if (filters.dateFrom && filters.dateTo) {
+        startDate = filters.dateFrom
+        endDate = filters.dateTo
+      } else {
+        const today = new Date()
+        switch (filters.period) {
+          case '7d':
+            startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+            break
+          case '30d':
+            startDate = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+            break
+          case '90d':
+            startDate = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+            break
+          case '1y':
+            startDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate()).toISOString().split('T')[0]
+            break
+          default:
+            startDate = '2020-01-01'
+        }
+      }
+
+      // Fetch datos básicos de contabilidad
+      const queryParams = new URLSearchParams({
+        period: filters.period,
+        ...(filters.dateFrom && { dateFrom: filters.dateFrom }),
+        ...(filters.dateTo && { dateTo: filters.dateTo })
+      })
+
+      const [accountingResponse, financialResponse] = await Promise.all([
+        fetch(`/api/accounting?${queryParams}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch(`/api/reports/financial?startDate=${startDate}&endDate=${endDate}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+      ])
+
+      if (!accountingResponse.ok) {
+        throw new Error('Failed to fetch accounting data')
+      }
+
+      const accountingData = await accountingResponse.json()
+      setData(accountingData)
+
+      // Solo establecer reporte financiero si la respuesta es exitosa
+      if (financialResponse.ok) {
+        const financialData = await financialResponse.json()
+        setFinancialReport(financialData.report)
+      }
+      
+    } catch (error) {
+      console.error('Error fetching accounting data:', error)
+      setData(null)
+      setFinancialReport(null)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handlePeriodChange = (period: Filters['period']) => {
+    setFilters(prev => ({ ...prev, period }))
+  }
+
+  const handleDateChange = (field: 'dateFrom' | 'dateTo', value: string) => {
+    setFilters(prev => ({ ...prev, [field]: value }))
+  }
+
+  const handleExportData = () => {
+    if (!data && !financialReport) {
+      alert('Nenhum dado disponível para exportar')
+      return
+    }
+
+    const exportData = {
+      periodo: {
+        de: filters.dateFrom || 'Início',
+        ate: filters.dateTo || 'Hoje',
+        tipo: filters.period
+      },
+      contabilidade: data,
+      relatorioFinanceiro: financialReport,
+      exportadoEm: new Date().toISOString()
+    }
+
+    const dataStr = JSON.stringify(exportData, null, 2)
+    const dataBlob = new Blob([dataStr], { type: 'application/json' })
+    const url = URL.createObjectURL(dataBlob)
+    
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `relatorio-contabilidade-${new Date().toISOString().split('T')[0]}.json`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
+  // Calcular métricas avanzadas
+  const calculateAdvancedMetrics = () => {
+    if (!financialReport || !data) return null
+
+    const roi = financialReport.totalCosts > 0 
+      ? ((financialReport.grossProfit / financialReport.totalCosts) * 100) 
+      : 0
+
+    const revenuePerOrder = data.totalOrders > 0 
+      ? financialReport.totalRevenue / data.totalOrders 
+      : 0
+
+    const profitPerOrder = data.totalOrders > 0 
+      ? financialReport.grossProfit / data.totalOrders 
+      : 0
+
+    // Proyección para el próximo mes (basada en crecimiento)
+    const monthlyGrowth = data.revenueGrowth / 100
+    const projectedRevenue = financialReport.totalRevenue * (1 + monthlyGrowth)
+    const projectedProfit = projectedRevenue * (financialReport.profitMargin / 100)
+
+    return {
+      roi: roi.toFixed(1),
+      revenuePerOrder: revenuePerOrder,
+      profitPerOrder: profitPerOrder,
+      projectedRevenue: projectedRevenue,
+      projectedProfit: projectedProfit,
+      efficiency: financialReport.profitMargin > 20 ? 'Alta' : financialReport.profitMargin > 10 ? 'Média' : 'Baixa'
+    }
+  }
+
+  const advancedMetrics = calculateAdvancedMetrics()
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(amount)
+  }
+
+  const getTransactionIcon = (type: string) => {
+    switch (type) {
+      case 'sale':
+        return <TrendingUp className="w-4 h-4 text-green-600" />
+      case 'commission':
+        return <TrendingDown className="w-4 h-4 text-red-600" />
+      case 'payout':
+        return <DollarSign className="w-4 h-4 text-blue-600" />
+      default:
+        return <DollarSign className="w-4 h-4 text-gray-600" />
+    }
+  }
+
+  const getTransactionColor = (type: string) => {
+    switch (type) {
+      case 'sale':
+        return 'text-green-600'
+      case 'commission':
+        return 'text-red-600'
+      case 'payout':
+        return 'text-blue-600'
+      default:
+        return 'text-gray-600'
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando datos contables...</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Contabilidad</h1>
+              <p className="text-gray-600">Análisis financiero y métricas de la tienda</p>
+            </div>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={fetchAccountingData}
+                className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors flex items-center"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Actualizar
+              </button>
+              <button 
+                onClick={handleExportData}
+                className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Exportar Relatório
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Filtros */}
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+          <div className="flex items-center mb-4">
+            <Filter className="w-5 h-5 text-gray-600 mr-2" />
+            <h2 className="text-lg font-semibold text-gray-900">Filtros</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Período</label>
+              <select
+                value={filters.period}
+                onChange={(e) => handlePeriodChange(e.target.value as Filters['period'])}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+              >
+                <option value="7d">Últimos 7 días</option>
+                <option value="30d">Últimos 30 días</option>
+                <option value="90d">Últimos 90 días</option>
+                <option value="1y">Último año</option>
+                <option value="all">Todo el período</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Desde</label>
+              <input
+                type="date"
+                value={filters.dateFrom}
+                onChange={(e) => handleDateChange('dateFrom', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Hasta</label>
+              <input
+                type="date"
+                value={filters.dateTo}
+                onChange={(e) => handleDateChange('dateTo', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+              />
+            </div>
+            
+            <div className="flex items-end">
+              <button
+                onClick={() => setFilters({ dateFrom: '', dateTo: '', period: '30d' })}
+                className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors"
+              >
+                Limpiar filtros
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Métricas principales */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="flex items-center">
+              <div className="p-3 bg-emerald-100 rounded-lg">
+                <DollarSign className="w-6 h-6 text-emerald-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Ingresos Totales</p>
+                <p className="text-2xl font-bold text-gray-900">{formatCurrency(data?.totalRevenue || 0)}</p>
+                <p className="text-sm text-emerald-600 flex items-center">
+                  <TrendingUp className="w-4 h-4 mr-1" />
+                  +{data?.revenueGrowth || 0}%
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="flex items-center">
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <BarChart3 className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Total Pedidos</p>
+                <p className="text-2xl font-bold text-gray-900">{data?.totalOrders || 0}</p>
+                <p className="text-sm text-blue-600 flex items-center">
+                  <TrendingUp className="w-4 h-4 mr-1" />
+                  +{data?.ordersGrowth || 0}%
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="flex items-center">
+              <div className="p-3 bg-purple-100 rounded-lg">
+                <TrendingUp className="w-6 h-6 text-purple-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Ticket Promedio</p>
+                <p className="text-2xl font-bold text-gray-900">{formatCurrency(data?.averageOrderValue || 0)}</p>
+                <p className="text-sm text-gray-500">Por pedido</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="flex items-center">
+              <div className="p-3 bg-orange-100 rounded-lg">
+                <Calendar className="w-6 h-6 text-orange-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Período</p>
+                <p className="text-lg font-bold text-gray-900">
+                  {filters.period === '7d' ? '7 días' :
+                   filters.period === '30d' ? '30 días' :
+                   filters.period === '90d' ? '90 días' :
+                   filters.period === '1y' ? '1 año' : 'Todo'}
+                </p>
+                <p className="text-sm text-gray-500">Seleccionado</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Nueva métrica: Ganancia Bruta */}
+          {financialReport && (
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="flex items-center">
+                <div className="p-3 bg-green-100 rounded-lg">
+                  <TrendingUp className="w-6 h-6 text-green-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Ganancia Bruta</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(financialReport.grossProfit)}</p>
+                  <p className="text-sm text-green-600">
+                    {financialReport.profitMargin.toFixed(1)}% margen
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Nueva métrica: Costos Totales */}
+          {financialReport && (
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="flex items-center">
+                <div className="p-3 bg-red-100 rounded-lg">
+                  <TrendingDown className="w-6 h-6 text-red-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Costos Totales</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(financialReport.totalCosts)}</p>
+                  <p className="text-sm text-gray-500">Inventario</p>
+                </div>
+            </div>
+          </div>
+        )}
+
+        {/* Análisis Financiero Avanzado */}
+        {financialReport && (
+          <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">Análise Financeiro Avançado</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="text-center p-4 bg-green-50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">{formatCurrency(financialReport.grossProfit)}</div>
+                <div className="text-sm text-gray-600">Lucro Bruto</div>
+                <div className="text-xs text-gray-500">Receita - Custos</div>
+              </div>
+              <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600">{financialReport.profitMargin.toFixed(1)}%</div>
+                <div className="text-sm text-gray-600">Margem de Lucro</div>
+                <div className="text-xs text-gray-500">Eficiência</div>
+              </div>
+              <div className="text-center p-4 bg-purple-50 rounded-lg">
+                <div className="text-2xl font-bold text-purple-600">{formatCurrency(financialReport.averageOrderValue)}</div>
+                <div className="text-sm text-gray-600">Ticket Médio</div>
+                <div className="text-xs text-gray-500">Por pedido</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Métricas Avanzadas de Rentabilidad */}
+        {advancedMetrics && (
+          <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">Métricas Avançadas de Rentabilidade</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="text-center p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                <div className="text-3xl font-bold text-emerald-600">{advancedMetrics.roi}%</div>
+                <div className="text-sm font-medium text-gray-700">ROI</div>
+                <div className="text-xs text-gray-500">Retorno sobre Investimento</div>
+                <div className="mt-2 text-xs text-emerald-600">
+                  {parseFloat(advancedMetrics.roi) > 50 ? 'Excelente' : 
+                   parseFloat(advancedMetrics.roi) > 25 ? 'Bom' : 
+                   parseFloat(advancedMetrics.roi) > 10 ? 'Regular' : 'Baixo'}
+                </div>
+              </div>
+              
+              <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="text-3xl font-bold text-blue-600">{formatCurrency(advancedMetrics.revenuePerOrder)}</div>
+                <div className="text-sm font-medium text-gray-700">Receita por Pedido</div>
+                <div className="text-xs text-gray-500">Média de vendas</div>
+                <div className="mt-2 text-xs text-blue-600">
+                  {advancedMetrics.revenuePerOrder > 500 ? 'Alto valor' : 
+                   advancedMetrics.revenuePerOrder > 200 ? 'Valor médio' : 'Baixo valor'}
+                </div>
+              </div>
+              
+              <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
+                <div className="text-3xl font-bold text-green-600">{formatCurrency(advancedMetrics.profitPerOrder)}</div>
+                <div className="text-sm font-medium text-gray-700">Lucro por Pedido</div>
+                <div className="text-xs text-gray-500">Ganância média</div>
+                <div className="mt-2 text-xs text-green-600">
+                  {advancedMetrics.profitPerOrder > 100 ? 'Muito rentável' : 
+                   advancedMetrics.profitPerOrder > 50 ? 'Rentável' : 'Pouco rentável'}
+                </div>
+              </div>
+              
+              <div className="text-center p-4 bg-purple-50 rounded-lg border border-purple-200">
+                <div className="text-3xl font-bold text-purple-600">{advancedMetrics.efficiency}</div>
+                <div className="text-sm font-medium text-gray-700">Eficiência</div>
+                <div className="text-xs text-gray-500">Nível de rentabilidade</div>
+                <div className="mt-2 text-xs text-purple-600">
+                  {advancedMetrics.efficiency === 'Alta' ? 'Margem > 20%' : 
+                   advancedMetrics.efficiency === 'Média' ? 'Margem 10-20%' : 'Margem < 10%'}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Proyecciones Financieras */}
+        {advancedMetrics && (
+          <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">Projeções Financeiras</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200">
+                <div className="flex items-center mb-3">
+                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3">
+                    <TrendingUp className="w-4 h-4 text-white" />
+                  </div>
+                  <h4 className="text-lg font-semibold text-gray-900">Próximo Período</h4>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Receita Projetada:</span>
+                    <span className="font-semibold text-blue-600">{formatCurrency(advancedMetrics.projectedRevenue)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Lucro Projetado:</span>
+                    <span className="font-semibold text-green-600">{formatCurrency(advancedMetrics.projectedProfit)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Crescimento:</span>
+                    <span className="font-semibold text-purple-600">+{data?.revenueGrowth?.toFixed(1) || 0}%</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200">
+                <div className="flex items-center mb-3">
+                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-3">
+                    <BarChart3 className="w-4 h-4 text-white" />
+                  </div>
+                  <h4 className="text-lg font-semibold text-gray-900">Análise de Tendência</h4>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Status Atual:</span>
+                    <span className={`font-semibold ${
+                      (data?.revenueGrowth || 0) > 0 ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {(data?.revenueGrowth || 0) > 0 ? 'Crescimento' : 'Declínio'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Eficiência:</span>
+                    <span className={`font-semibold ${
+                      advancedMetrics.efficiency === 'Alta' ? 'text-green-600' :
+                      advancedMetrics.efficiency === 'Média' ? 'text-yellow-600' : 'text-red-600'
+                    }`}>
+                      {advancedMetrics.efficiency}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">ROI:</span>
+                    <span className={`font-semibold ${
+                      parseFloat(advancedMetrics.roi) > 25 ? 'text-green-600' :
+                      parseFloat(advancedMetrics.roi) > 10 ? 'text-yellow-600' : 'text-red-600'
+                    }`}>
+                      {advancedMetrics.roi}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Gráfico de ingresos mensuales */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Ingresos Mensuales</h3>
+            <div className="space-y-4">
+              {data?.monthlyRevenue.map((month, index) => (
+                <div key={month.month} className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-emerald-500 rounded-full mr-3"></div>
+                    <span className="text-sm font-medium text-gray-700">{month.month}</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-semibold text-gray-900">{formatCurrency(month.revenue)}</div>
+                    <div className="text-xs text-gray-500">{month.orders} pedidos</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Productos más vendidos */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Productos Top</h3>
+            <div className="space-y-4">
+              {data?.topProducts.map((product, index) => (
+                <div key={product.id} className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center mr-3">
+                      <span className="text-sm font-bold text-emerald-600">#{index + 1}</span>
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">{product.title}</div>
+                      <div className="text-xs text-gray-500">{product.sales} ventas</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-semibold text-gray-900">{formatCurrency(product.revenue)}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Análisis de Métodos de Pago */}
+        {financialReport && financialReport.paymentMethods.length > 0 && (
+          <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Análise por Método de Pagamento</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {financialReport.paymentMethods.map((method, index) => (
+                <div key={index} className="p-4 border border-gray-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-gray-900 capitalize">{method.method}</h4>
+                    <span className="text-sm text-gray-500">{method.count} transações</span>
+                  </div>
+                  <div className="text-2xl font-bold text-emerald-600">{formatCurrency(method.amount)}</div>
+                  <div className="text-sm text-gray-500">
+                    {financialReport.totalRevenue > 0 
+                      ? `${((method.amount / financialReport.totalRevenue) * 100).toFixed(1)}% do total`
+                      : '0% do total'
+                    }
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Análisis de Rentabilidad por Mes */}
+        {financialReport && financialReport.revenueByMonth.length > 0 && (
+          <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Análise de Rentabilidade por Mês</h3>
+            <div className="space-y-4">
+              {financialReport.revenueByMonth.map((month, index) => (
+                <div key={month.month} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
+                    <span className="text-sm font-medium text-gray-700">{month.month}</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-6 text-right">
+                    <div>
+                      <div className="text-sm font-semibold text-gray-900">{formatCurrency(month.revenue)}</div>
+                      <div className="text-xs text-gray-500">Receita</div>
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-red-600">{formatCurrency(month.costs)}</div>
+                      <div className="text-xs text-gray-500">Custos</div>
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-green-600">{formatCurrency(month.profit)}</div>
+                      <div className="text-xs text-gray-500">Lucro</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Transacciones recientes */}
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900">Transacciones Recientes</h3>
+          </div>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Tipo
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Descripción
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Monto
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Fecha
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {data?.recentTransactions.map((transaction) => (
+                  <tr key={transaction.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        {getTransactionIcon(transaction.type)}
+                        <span className="ml-2 text-sm font-medium text-gray-900 capitalize">
+                          {transaction.type === 'sale' ? 'Venta' :
+                           transaction.type === 'commission' ? 'Comisión' : 'Pago'}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{transaction.description}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className={`text-sm font-semibold ${getTransactionColor(transaction.type)}`}>
+                        {transaction.amount > 0 ? '+' : ''}{formatCurrency(transaction.amount)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(transaction.date).toLocaleDateString('pt-BR')}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

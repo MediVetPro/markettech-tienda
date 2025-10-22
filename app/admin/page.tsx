@@ -2,92 +2,102 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Plus, Edit, Trash2, Eye, Package, Users, ShoppingCart, TrendingUp } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Plus, Package, ShoppingCart, Users, TrendingUp, Settings, CreditCard, BarChart3, Truck, Database, Shield, Heart, Bell } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 
-interface Product {
-  id: string
-  title: string
-  price: number
-  condition: string
-  status: string
-  createdAt: string
-  images: Array<{ url: string }>
-}
 
 export default function AdminPage() {
-  const [products, setProducts] = useState<Product[]>([])
   const [stats, setStats] = useState({
     totalProducts: 0,
     totalOrders: 0,
-    totalRevenue: 0,
-    activeProducts: 0
+    newOrders: 0,
+    totalUsers: 0
   })
+  const [loading, setLoading] = useState(true)
+  const { isAdmin, isAdminVendas, isAnyAdmin, canManageUsers, canManageSiteSettings } = useAuth()
+  const router = useRouter()
 
   useEffect(() => {
-    // Simular carga de datos
-    const mockProducts: Product[] = [
-      {
-        id: '1',
-        title: 'iPhone 15 Pro Max 256GB',
-        price: 1299.99,
-        condition: 'NEW',
-        status: 'ACTIVE',
-        createdAt: '2024-01-15',
-        images: [{ url: '/placeholder-phone.jpg' }]
-      },
-      {
-        id: '2',
-        title: 'MacBook Pro M3 14"',
-        price: 1999.99,
-        condition: 'USED',
-        status: 'ACTIVE',
-        createdAt: '2024-01-14',
-        images: [{ url: '/placeholder-laptop.jpg' }]
-      },
-      {
-        id: '3',
-        title: 'AirPods Pro 2da Gen',
-        price: 249.99,
-        condition: 'NEW',
-        status: 'SOLD',
-        createdAt: '2024-01-13',
-        images: [{ url: '/placeholder-headphones.jpg' }]
+    if (!isAnyAdmin) {
+      router.push('/')
+      return
+    }
+    
+    fetchDashboardData()
+  }, [isAnyAdmin])
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true)
+      
+      // Obtener token de autenticación
+      const token = localStorage.getItem('smartesh_token')
+      if (!token) {
+        console.error('No hay token de autenticación')
+        return
       }
-    ]
+      
+      // Fetch products del usuario actual
+      const productsResponse = await fetch('/api/products?admin=true', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      if (!productsResponse.ok) {
+        throw new Error('Failed to fetch products')
+      }
+      const productsData = await productsResponse.json()
 
-    setProducts(mockProducts)
-    setStats({
-      totalProducts: 15,
-      totalOrders: 8,
-      totalRevenue: 12500.00,
-      activeProducts: 12
-    })
-  }, [])
+      // Fetch orders from real API
+      const ordersResponse = await fetch('/api/orders')
+      if (!ordersResponse.ok) {
+        throw new Error('Failed to fetch orders')
+      }
+      const ordersData = await ordersResponse.json()
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'ACTIVE':
-        return 'bg-green-100 text-green-800'
-      case 'INACTIVE':
-        return 'bg-gray-100 text-gray-800'
-      case 'SOLD':
-        return 'bg-blue-100 text-blue-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
+      // Fetch users count
+      const usersResponse = await fetch('/api/users')
+      if (!usersResponse.ok) {
+        throw new Error('Failed to fetch users')
+      }
+      const usersData = await usersResponse.json()
+      const totalUsers = usersData.users?.length || 0
+
+      // Calculate stats
+      setStats({
+        totalProducts: productsData.products?.length || 0,
+        totalOrders: ordersData.orders?.length || 0,
+        newOrders: ordersData.orders?.filter((o: any) => o.status === 'PENDING').length || 0,
+        totalUsers: totalUsers
+      })
+      
+      console.log('✅ Dashboard data loaded successfully from database')
+    } catch (error) {
+      console.error('❌ Error fetching dashboard data:', error)
+      
+      // Solo usar datos reales de la base de datos
+      setStats({
+        totalProducts: 0,
+        totalOrders: 0,
+        newOrders: 0,
+        totalUsers: 0
+      })
+    } finally {
+      setLoading(false)
     }
   }
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'ACTIVE':
-        return 'Activo'
-      case 'INACTIVE':
-        return 'Inactivo'
-      case 'SOLD':
-        return 'Vendido'
-      default:
-        return status
-    }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -95,19 +105,19 @@ export default function AdminPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Panel de Administración</h1>
-          <p className="text-gray-600">Gestiona tu tienda de tecnología</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Painel</h1>
+          <p className="text-gray-600">Gerenciar Store</p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <Package className="w-6 h-6 text-blue-600" />
+              <div className="p-3 bg-primary-100 rounded-lg">
+                <Package className="w-6 h-6 text-primary-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Productos Totales</p>
+                <p className="text-sm font-medium text-gray-600">Total de Produtos</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.totalProducts}</p>
               </div>
             </div>
@@ -119,7 +129,7 @@ export default function AdminPage() {
                 <ShoppingCart className="w-6 h-6 text-green-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Pedidos</p>
+                <p className="text-sm font-medium text-gray-600">Total de Pedidos</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.totalOrders}</p>
               </div>
             </div>
@@ -127,24 +137,24 @@ export default function AdminPage() {
 
           <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center">
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <TrendingUp className="w-6 h-6 text-purple-600" />
+              <div className="p-3 bg-yellow-100 rounded-lg">
+                <TrendingUp className="w-6 h-6 text-yellow-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Ingresos</p>
-                <p className="text-2xl font-bold text-gray-900">${stats.totalRevenue.toLocaleString()}</p>
+                <p className="text-sm font-medium text-gray-600">Novos Pedidos</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.newOrders}</p>
               </div>
             </div>
           </div>
 
           <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center">
-              <div className="p-3 bg-orange-100 rounded-lg">
-                <Users className="w-6 h-6 text-orange-600" />
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <Users className="w-6 h-6 text-blue-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Productos Activos</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.activeProducts}</p>
+                <p className="text-sm font-medium text-gray-600">Total de Usuários</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
               </div>
             </div>
           </div>
@@ -152,121 +162,146 @@ export default function AdminPage() {
 
         {/* Actions */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Adicionar Novo Produto */}
             <Link
               href="/admin/products/new"
-              className="bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors flex items-center justify-center"
+              className="group bg-blue-500 text-white p-6 rounded-lg font-medium hover:bg-blue-600 transition-all duration-200 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md"
             >
-              <Plus className="w-5 h-5 mr-2" />
-              Agregar Producto
+              <Plus className="w-8 h-8 mb-3 group-hover:scale-105 transition-transform duration-200 text-white" />
+              <span className="text-sm font-medium text-white">Adicionar Novo Produto</span>
             </Link>
+
+            {/* Gerenciar Produtos */}
+            <Link
+              href="/admin/products"
+              className="group bg-green-500 text-white p-6 rounded-lg font-medium hover:bg-green-600 transition-all duration-200 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md"
+            >
+              <Package className="w-8 h-8 mb-3 group-hover:scale-105 transition-transform duration-200 text-white" />
+              <span className="text-sm font-medium text-white">Gerenciar Produtos</span>
+            </Link>
+
+            {/* Gerenciar Pedidos */}
             <Link
               href="/admin/orders"
-              className="bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors flex items-center justify-center"
+              className="group bg-orange-500 text-white p-6 rounded-lg font-medium hover:bg-orange-600 transition-all duration-200 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md"
             >
-              <ShoppingCart className="w-5 h-5 mr-2" />
-              Ver Pedidos
+              <ShoppingCart className="w-8 h-8 mb-3 group-hover:scale-105 transition-transform duration-200 text-white" />
+              <span className="text-sm font-medium text-white">Gerenciar Pedidos</span>
             </Link>
-            <Link
-              href="/admin/users"
-              className="bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors flex items-center justify-center"
-            >
-              <Users className="w-5 h-5 mr-2" />
-              Gestionar Usuarios
-            </Link>
+
+            {/* Perfil de Pagamento Global - Solo para ADMIN */}
+            {isAdmin && (
+              <Link
+                href="/admin/global-payment-profile"
+                className="group bg-purple-500 text-white p-6 rounded-lg font-medium hover:bg-purple-600 transition-all duration-200 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md"
+              >
+                <CreditCard className="w-8 h-8 mb-3 group-hover:scale-105 transition-transform duration-200 text-white" />
+                <span className="text-sm font-medium text-white">Perfil de Pagamento Global</span>
+              </Link>
+            )}
+
+            {/* Gerenciar Usuários */}
+            {canManageUsers && (
+              <Link
+                href="/admin/users"
+                className="group bg-red-500 text-white p-6 rounded-lg font-medium hover:bg-red-600 transition-all duration-200 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md"
+              >
+                <Users className="w-8 h-8 mb-3 group-hover:scale-105 transition-transform duration-200 text-white" />
+                <span className="text-sm font-medium text-white">Gerenciar Usuários</span>
+              </Link>
+            )}
+
+            {/* Configuração de Frete - Solo para ADMIN */}
+            {isAdmin && (
+              <Link
+                href="/admin/shipping"
+                className="group bg-orange-500 text-white p-6 rounded-lg font-medium hover:bg-orange-600 transition-all duration-200 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md"
+              >
+                <Truck className="w-8 h-8 mb-3 group-hover:scale-105 transition-transform duration-200 text-white" />
+                <span className="text-sm font-medium text-white">Configuração de Frete</span>
+              </Link>
+            )}
+
+            {/* Configurações do Site */}
+            {canManageSiteSettings && (
+              <Link
+                href="/admin/settings"
+                className="group bg-indigo-500 text-white p-6 rounded-lg font-medium hover:bg-indigo-600 transition-all duration-200 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md"
+              >
+                <Settings className="w-8 h-8 mb-3 group-hover:scale-105 transition-transform duration-200 text-white" />
+                <span className="text-sm font-medium text-white">Configurações do Site</span>
+              </Link>
+            )}
+
+            {/* Contabilidade - Solo para ADMIN */}
+            {isAdmin && (
+              <Link
+                href="/admin/accounting"
+                className="group bg-teal-500 text-white p-6 rounded-lg font-medium hover:bg-teal-600 transition-all duration-200 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md"
+              >
+                <BarChart3 className="w-8 h-8 mb-3 group-hover:scale-105 transition-transform duration-200 text-white" />
+                <span className="text-sm font-medium text-white">Contabilidade</span>
+              </Link>
+            )}
+
+            {/* Administração da Base de Dados */}
+            {isAdmin && (
+              <Link
+                href="/admin/database"
+                className="group bg-red-500 text-white p-6 rounded-lg font-medium hover:bg-red-600 transition-all duration-200 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md"
+              >
+                <Database className="w-8 h-8 mb-3 group-hover:scale-105 transition-transform duration-200 text-white" />
+                <span className="text-sm font-medium text-white">Base de Dados</span>
+              </Link>
+            )}
+
+            {/* Diagnóstico del Sistema */}
+            {isAdmin && (
+              <Link
+                href="/admin/diagnostics"
+                className="group bg-amber-500 text-white p-6 rounded-lg font-medium hover:bg-amber-600 transition-all duration-200 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md"
+              >
+                <Shield className="w-8 h-8 mb-3 group-hover:scale-105 transition-transform duration-200 text-white" />
+                <span className="text-sm font-medium text-white">Diagnóstico del Sistema</span>
+              </Link>
+            )}
+
+            {/* Salud del Sistema */}
+            {isAdmin && (
+              <Link
+                href="/admin/health"
+                className="group bg-green-500 text-white p-6 rounded-lg font-medium hover:bg-green-600 transition-all duration-200 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md"
+              >
+                <Heart className="w-8 h-8 mb-3 group-hover:scale-105 transition-transform duration-200 text-white" />
+                <span className="text-sm font-medium text-white">Salud del Sistema</span>
+              </Link>
+            )}
+
+            {/* Configuração do MercadoPago */}
+            {isAdmin && (
+              <Link
+                href="/admin/mercado-pago"
+                className="group bg-green-500 text-white p-6 rounded-lg font-medium hover:bg-green-600 transition-all duration-200 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md"
+              >
+                <CreditCard className="w-8 h-8 mb-3 group-hover:scale-105 transition-transform duration-200 text-white" />
+                <span className="text-sm font-medium text-white">Configuração do MercadoPago</span>
+              </Link>
+            )}
+
+            {/* Alertas del Sistema */}
+            {isAdmin && (
+              <Link
+                href="/admin/alerts"
+                className="group bg-red-500 text-white p-6 rounded-lg font-medium hover:bg-red-600 transition-all duration-200 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md"
+              >
+                <Bell className="w-8 h-8 mb-3 group-hover:scale-105 transition-transform duration-200 text-white" />
+                <span className="text-sm font-medium text-white">Alertas del Sistema</span>
+              </Link>
+            )}
           </div>
         </div>
 
-        {/* Products Table */}
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Productos Recientes</h2>
-          </div>
-          
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Producto
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Precio
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Condición
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Estado
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Fecha
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Acciones
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {products.map((product) => (
-                  <tr key={product.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <img
-                          src={product.images[0]?.url || '/placeholder.jpg'}
-                          alt={product.title}
-                          className="w-12 h-12 rounded-lg object-cover"
-                        />
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900 line-clamp-1">
-                            {product.title}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        ${product.price.toLocaleString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-600">
-                        {product.condition === 'NEW' ? 'Nuevo' : 'Usado'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(product.status)}`}>
-                        {getStatusText(product.status)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {new Date(product.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <Link
-                          href={`/products/${product.id}`}
-                          className="text-primary-600 hover:text-primary-900"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Link>
-                        <Link
-                          href={`/admin/products/${product.id}/edit`}
-                          className="text-gray-600 hover:text-gray-900"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Link>
-                        <button className="text-red-600 hover:text-red-900">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
       </div>
     </div>
   )

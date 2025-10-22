@@ -1,16 +1,37 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": "dist",
+  "outputDirectory": ".next",
   "framework": "nextjs",
+  "installCommand": "npm install",
+  "devCommand": "npm run dev",
+  "regions": ["iad1"],
   "functions": {
     "app/api/**/*.ts": {
-      "runtime": "nodejs18.x"
+      "maxDuration": 30
     }
   },
   "env": {
-    "DATABASE_URL": "@database_url",
-    "JWT_SECRET": "@jwt_secret",
-    "NEXTAUTH_URL": "@nextauth_url",
-    "NEXTAUTH_SECRET": "@nextauth_secret"
+    "NODE_ENV": "production"
+  },
+  "build": {
+    "env": {
+      "DATABASE_URL": "@database_url",
+      "JWT_SECRET": "@jwt_secret",
+      "MERCADOPAGO_ACCESS_TOKEN": "@mercadopago_access_token",
+      "MERCADOPAGO_PUBLIC_KEY": "@mercadopago_public_key",
+      "STRIPE_SECRET_KEY": "@stripe_secret_key",
+      "STRIPE_PUBLIC_KEY": "@stripe_public_key",
+      "PAYPAL_CLIENT_ID": "@paypal_client_id",
+      "PAYPAL_CLIENT_SECRET": "@paypal_client_secret",
+      "SMTP_HOST": "@smtp_host",
+      "SMTP_PORT": "@smtp_port",
+      "SMTP_USER": "@smtp_user",
+      "SMTP_PASS": "@smtp_pass",
+      "VAPID_PUBLIC_KEY": "@vapid_public_key",
+      "VAPID_PRIVATE_KEY": "@vapid_private_key",
+      "VAPID_EMAIL": "@vapid_email",
+      "NEXTAUTH_URL": "@nextauth_url",
+      "NEXTAUTH_SECRET": "@nextauth_secret"
+    }
   }
 }

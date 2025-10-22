@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Edit, Trash2, User, Mail, Phone, Shield, UserCheck } from 'lucide-react'
-import { useLanguage } from '@/contexts/LanguageContext'
-
 interface User {
   id: string
   name: string
@@ -23,8 +21,7 @@ export default function AdminUsersPage() {
     clientUsers: 0,
     newUsers: 0
   })
-  const { t } = useLanguage()
-
+  
   useEffect(() => {
     // Simular carga de datos
     const mockUsers: User[] = [

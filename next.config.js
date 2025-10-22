@@ -1,13 +1,27 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    unoptimized: true
+    domains: ['localhost', 'vercel.app', 'markettech.vercel.app'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
   },
-  output: 'export',
-  trailingSlash: true,
-  distDir: 'dist',
-  basePath: process.env.NODE_ENV === 'production' ? '/markettech-tienda' : '',
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/markettech-tienda' : ''
+  experimental: {
+    serverComponentsExternalPackages: ['@prisma/client']
+  },
+  // Configuración para WebSocket HMR
+  webpack: (config, { dev, isServer }) => {
+    if (dev && !isServer) {
+      config.watchOptions = {
+        poll: 1000,
+        aggregateTimeout: 300,
+      }
+    }
+    return config
+  }
 }
 
 module.exports = nextConfig

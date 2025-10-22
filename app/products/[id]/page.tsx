@@ -1,8 +1,8 @@
 import { ProductDetailClient } from '@/components/ProductDetailClient'
 
-// Función para generar parámetros estáticos
+// Função para gerar parâmetros estáticos
 export async function generateStaticParams() {
-  // Retornar IDs de productos estáticos para el build
+  // Retornar IDs de produtos estáticos para o build
   return [
     { id: '1' },
     { id: '2' },

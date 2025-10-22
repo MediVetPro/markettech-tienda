@@ -1,91 +1,740 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  phone     String?
-  password  String
-  role      String   @default("CLIENT")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  orders Order[]
+  id                      String                   @id @default(cuid())
+  email                   String                   @unique
+  name                    String
+  phone                   String?
+  password                String
+  role                    String                   @default("CLIENT")
+  cpf                     String?
+  birthDate               DateTime?
+  gender                  String?
+  address                 String?
+  city                    String?
+  state                   String?
+  zipCode                 String?
+  country                 String?                  @default("Brasil")
+  newsletter              Boolean                  @default(false)
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  lastLoginAt             DateTime?
+  chatMessages            ChatMessage[]
+  chatParticipants        ChatParticipant[]
+  createdChatRooms        ChatRoom[]               @relation("ChatRoomCreator")
+  couponUsages            CouponUsage[]
+  receivedMessages        Message[]                @relation("MessageRecipient")
+  sentMessages            Message[]                @relation("MessageSender")
+  notificationPreferences NotificationPreference[]
+  notifications           Notification[]
+  soldOrderItems          OrderItem[]              @relation("OrderItemSeller")
+  orders                  Order[]
+  paymentMethods          PaymentMethod[]
+  payments                Payment[]
+  ratings                 ProductRating[]
+  products                Product[]
+  pushSubscriptions       PushSubscription[]
+  reviewVotes             ReviewVote[]
+  reviews                 Review[]
+  savedComparisons        SavedComparison[]
+  sellerPayouts           SellerPayout[]
+  cart                    UserCart?
+  userEvents              UserEvent[]
+  userSessions            UserSession[]
+  whatsappMessages        WhatsAppMessage[]
+  whatsappSessions        WhatsAppSession[]
+  wishlistItems           WishlistItem[]
 
   @@map("users")
 }
 
 model Product {
-  id          String   @id @default(cuid())
-  title       String
-  description String
-  price       Float
-  condition   String
-  aestheticCondition Int // 1-10
-  specifications String
-  status      String   @default("ACTIVE")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  images ProductImage[]
-  orders OrderItem[]
+  id                 String          @id @default(cuid())
+  title              String
+  description        String
+  price              Decimal
+  supplierPrice      Decimal
+  marginPercentage   Decimal         @default(50.0)
+  previousPrice      Decimal?
+  condition          String
+  aestheticCondition Int
+  specifications     String
+  categories         String?
+  stock              Int             @default(0)
+  status             String          @default("ACTIVE")
+  manufacturerCode   String
+  manufacturer       String?
+  model              String?
+  publishedAt        DateTime?
+  publishedBy        String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  userId             String?
+  cartItems          CartItem[]
+  inventory          Inventory[]
+  orders             OrderItem[]
+  images             ProductImage[]
+  ratings            ProductRating[]
+  user               User?           @relation(fields: [userId], references: [id])
+  reviews            Review[]
+  wishlistItems      WishlistItem[]
 
   @@map("products")
 }
 
 model ProductImage {
   id        String  @id @default(cuid())
-  url       String
+  path      String
+  filename  String
   alt       String?
   order     Int     @default(0)
   productId String
-  
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@map("product_images")
 }
 
 model Order {
-  id        String      @id @default(cuid())
-  status    String      @default("PENDING")
-  total     Float
-  notes     String?
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-
-  userId String
-  user   User      @relation(fields: [userId], references: [id])
-  items  OrderItem[]
+  id                     String                @id @default(cuid())
+  status                 String                @default("PENDING")
+  paymentStatus          String                @default("PENDING")
+  shippingStatus         String                @default("PENDING")
+  total                  Float
+  notes                  String?
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+  customerName           String
+  customerEmail          String
+  customerPhone          String?
+  customerAddress        String?
+  commissionRate         Float                 @default(0.05)
+  platformFee            Float?
+  paymentMethod          String
+  globalPaymentProfileId String?
+  userId                 String?
+  inventoryMovements     InventoryMovement[]
+  notifications          Notification[]
+  items                  OrderItem[]
+  globalPaymentProfile   GlobalPaymentProfile? @relation(fields: [globalPaymentProfileId], references: [id])
+  user                   User?                 @relation(fields: [userId], references: [id])
+  payments               Payment[]
+  pixPayments            PixPayment[]
+  reviews                Review[]
+  sellerPayouts          SellerPayout[]
 
   @@map("orders")
 }
 
 model OrderItem {
-  id        String @id @default(cuid())
-  quantity  Int    @default(1)
-  price     Float
-
-  orderId   String
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
+  id               String  @id @default(cuid())
+  quantity         Int     @default(1)
+  price            Float
+  orderId          String
+  productId        String
+  sellerId         String?
+  sellerName       String?
+  sellerCommission Float?
+  order            Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product          Product @relation(fields: [productId], references: [id])
+  seller           User?   @relation("OrderItemSeller", fields: [sellerId], references: [id])
 
   @@map("order_items")
 }
 
-// Enums convertidos a strings para compatibilidad con SQLite
-// Role: "ADMIN" | "CLIENT"
-// ProductCondition: "NEW" | "USED"  
-// ProductStatus: "ACTIVE" | "INACTIVE" | "SOLD"
-// OrderStatus: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED"
+model SiteConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  type      String   @default("text")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("site_config")
+}
+
+model GlobalPaymentProfile {
+  id             String                @id @default(cuid())
+  isActive       Boolean               @default(true)
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  companyName    String
+  cnpj           String
+  email          String
+  address        String
+  city           String
+  state          String
+  zipCode        String
+  country        String                @default("Brasil")
+  bankName       String
+  bankCode       String
+  accountType    String
+  accountNumber  String
+  agencyNumber   String
+  accountHolder  String
+  pixKey         String?
+  pixKeyType     String?
+  pixProvider    String?
+  pixApiKey      String?
+  pixWebhookUrl  String?
+  paymentMethods GlobalPaymentMethod[]
+  orders         Order[]
+
+  @@map("global_payment_profiles")
+}
+
+model PixPayment {
+  id          String    @id @default(cuid())
+  orderId     String
+  amount      Float
+  description String
+  pixKey      String
+  pixKeyType  String
+  pixProvider String
+  qrCode      String?
+  qrCodeText  String?
+  externalId  String?
+  status      String    @default("PENDING")
+  expiresAt   DateTime
+  paidAt      DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  order       Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("pix_payments")
+}
+
+model GlobalPaymentMethod {
+  id                     String               @id @default(cuid())
+  type                   String
+  isActive               Boolean              @default(true)
+  config                 String?
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  globalPaymentProfileId String
+  globalPaymentProfile   GlobalPaymentProfile @relation(fields: [globalPaymentProfileId], references: [id], onDelete: Cascade)
+
+  @@map("global_payment_methods")
+}
+
+model UserCart {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  items     CartItem[]
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_carts")
+}
+
+model CartItem {
+  id         String   @id @default(cuid())
+  quantity   Int      @default(1)
+  userCartId String
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  userCart   UserCart @relation(fields: [userCartId], references: [id], onDelete: Cascade)
+
+  @@map("cart_items")
+}
+
+model ProductRating {
+  id        String   @id @default(cuid())
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("product_ratings")
+}
+
+model SellerPayout {
+  id         String    @id @default(cuid())
+  orderId    String
+  sellerId   String
+  amount     Decimal
+  commission Decimal
+  status     String    @default("PENDING")
+  paidAt     DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  order      Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  seller     User      @relation(fields: [sellerId], references: [id])
+
+  @@map("seller_payouts")
+}
+
+model CommissionSettings {
+  id        String   @id @default(cuid())
+  name      String
+  rate      Decimal
+  isActive  Boolean  @default(true)
+  minAmount Decimal?
+  maxAmount Decimal?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("commission_settings")
+}
+
+model Notification {
+  id             String   @id @default(cuid())
+  type           String
+  title          String
+  message        String
+  data           String?
+  read           Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  userId         String
+  orderId        String?
+  messageId      String?
+  relatedMessage Message? @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  order          Order?   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model Message {
+  id            String         @id @default(cuid())
+  subject       String
+  content       String
+  type          String         @default("CONTACT")
+  status        String         @default("UNREAD")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  senderId      String?
+  recipientId   String?
+  senderName    String?
+  senderEmail   String?
+  senderPhone   String?
+  replyId       String?
+  recipient     User?          @relation("MessageRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  reply         Message?       @relation("MessageReply", fields: [replyId], references: [id])
+  replies       Message[]      @relation("MessageReply")
+  sender        User?          @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  notifications Notification[]
+
+  @@map("messages")
+}
+
+model WishlistItem {
+  id                String    @id @default(cuid())
+  userId            String
+  productId         String
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  priceAlertEnabled Boolean   @default(false)
+  targetPrice       Decimal?
+  lastNotifiedAt    DateTime?
+  product           Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("wishlist_items")
+}
+
+model SavedComparison {
+  id         String   @id @default(cuid())
+  name       String
+  userId     String
+  productIds String
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("saved_comparisons")
+}
+
+model Coupon {
+  id             String        @id @default(cuid())
+  code           String        @unique
+  name           String
+  description    String?
+  type           String
+  value          Decimal
+  minOrderAmount Decimal?
+  maxDiscount    Decimal?
+  category       String?
+  usageLimit     Int?
+  usageCount     Int           @default(0)
+  userLimit      Int           @default(1)
+  isActive       Boolean       @default(true)
+  validFrom      DateTime      @default(now())
+  validUntil     DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  usages         CouponUsage[]
+
+  @@map("coupons")
+}
+
+model CouponUsage {
+  id       String   @id @default(cuid())
+  couponId String
+  userId   String
+  orderId  String?
+  usedAt   DateTime @default(now())
+  coupon   Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([couponId, userId, orderId])
+  @@map("coupon_usages")
+}
+
+model ChatRoom {
+  id           String            @id @default(cuid())
+  name         String
+  description  String?
+  type         String            @default("PUBLIC")
+  category     String?
+  isActive     Boolean           @default(true)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  createdBy    String?
+  messages     ChatMessage[]
+  participants ChatParticipant[]
+  creator      User?             @relation("ChatRoomCreator", fields: [createdBy], references: [id])
+
+  @@map("chat_rooms")
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  roomId    String
+  userId    String
+  content   String
+  type      String   @default("TEXT")
+  metadata  String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  room      ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("chat_messages")
+}
+
+model ChatParticipant {
+  id       String   @id @default(cuid())
+  roomId   String
+  userId   String
+  role     String   @default("MEMBER")
+  joinedAt DateTime @default(now())
+  lastSeen DateTime @default(now())
+  room     ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId])
+  @@map("chat_participants")
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String
+  p256dh    String
+  auth      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, endpoint])
+  @@map("push_subscriptions")
+}
+
+model NotificationPreference {
+  id              String   @id @default(cuid())
+  userId          String
+  type            String
+  category        String
+  isEnabled       Boolean  @default(true)
+  frequency       String   @default("IMMEDIATE")
+  quietHoursStart String?
+  quietHoursEnd   String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type, category])
+  @@map("notification_preferences")
+}
+
+model NotificationLog {
+  id          String    @id @default(cuid())
+  userId      String
+  type        String
+  category    String
+  title       String
+  message     String
+  data        String?
+  status      String    @default("PENDING")
+  sentAt      DateTime?
+  deliveredAt DateTime?
+  error       String?
+  createdAt   DateTime  @default(now())
+
+  @@map("notification_logs")
+}
+
+model UserEvent {
+  id         String       @id @default(cuid())
+  userId     String?
+  sessionId  String?
+  eventType  String
+  eventName  String
+  category   String?
+  action     String?
+  label      String?
+  value      Decimal?
+  properties String?
+  page       String?
+  referrer   String?
+  userAgent  String?
+  ipAddress  String?
+  country    String?
+  city       String?
+  device     String?
+  browser    String?
+  os         String?
+  createdAt  DateTime     @default(now())
+  session    UserSession? @relation(fields: [sessionId], references: [id])
+  user       User?        @relation(fields: [userId], references: [id])
+
+  @@map("user_events")
+}
+
+model UserSession {
+  id          String      @id @default(cuid())
+  userId      String?
+  sessionId   String      @unique
+  startTime   DateTime    @default(now())
+  endTime     DateTime?
+  duration    Int?
+  pageViews   Int         @default(0)
+  eventCount  Int         @default(0)
+  isActive    Boolean     @default(true)
+  referrer    String?
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmTerm     String?
+  utmContent  String?
+  country     String?
+  city        String?
+  device      String?
+  browser     String?
+  os          String?
+  screen      String?
+  language    String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  events      UserEvent[]
+  user        User?       @relation(fields: [userId], references: [id])
+
+  @@map("user_sessions")
+}
+
+model AnalyticsMetric {
+  id         String   @id @default(cuid())
+  metricType String
+  date       DateTime
+  name       String
+  value      Decimal
+  properties String?
+  createdAt  DateTime @default(now())
+
+  @@unique([metricType, date, name])
+  @@map("analytics_metrics")
+}
+
+model Payment {
+  id              String    @id @default(cuid())
+  orderId         String
+  userId          String
+  amount          Decimal
+  currency        String    @default("MXN")
+  status          String    @default("PENDING")
+  paymentMethod   String
+  provider        String
+  providerId      String?
+  providerData    String?
+  transactionId   String?
+  gatewayResponse String?
+  failureReason   String?
+  refundAmount    Decimal?
+  refundReason    String?
+  refundedAt      DateTime?
+  processedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model PaymentMethod {
+  id         String   @id @default(cuid())
+  userId     String
+  provider   String
+  providerId String
+  type       String
+  last4      String?
+  brand      String?
+  expMonth   Int?
+  expYear    Int?
+  isDefault  Boolean  @default(false)
+  isActive   Boolean  @default(true)
+  metadata   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payment_methods")
+}
+
+model Review {
+  id          String       @id @default(cuid())
+  productId   String
+  userId      String
+  orderId     String?
+  rating      Int
+  title       String?
+  comment     String?
+  images      String?
+  isVerified  Boolean      @default(false)
+  isPublic    Boolean      @default(true)
+  helpful     Int          @default(0)
+  notHelpful  Int          @default(0)
+  status      String       @default("PENDING")
+  moderatedBy String?
+  moderatedAt DateTime?
+  reason      String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  votes       ReviewVote[]
+  order       Order?       @relation(fields: [orderId], references: [id])
+  product     Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("reviews")
+}
+
+model ReviewVote {
+  id        String   @id @default(cuid())
+  reviewId  String
+  userId    String
+  isHelpful Boolean
+  createdAt DateTime @default(now())
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, userId])
+  @@map("review_votes")
+}
+
+model WhatsAppMessage {
+  id          String   @id @default(cuid())
+  userId      String?
+  phoneNumber String
+  messageId   String   @unique
+  type        String   @default("TEXT")
+  content     String
+  direction   String
+  status      String   @default("SENT")
+  metadata    String?
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User?    @relation(fields: [userId], references: [id])
+
+  @@map("whatsapp_messages")
+}
+
+model WhatsAppSession {
+  id          String   @id @default(cuid())
+  userId      String?
+  phoneNumber String   @unique
+  sessionId   String   @unique
+  isActive    Boolean  @default(true)
+  lastSeen    DateTime @default(now())
+  metadata    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User?    @relation(fields: [userId], references: [id])
+
+  @@map("whatsapp_sessions")
+}
+
+model Inventory {
+  id            String              @id @default(cuid())
+  productId     String
+  sku           String              @unique
+  quantity      Int                 @default(0)
+  reserved      Int                 @default(0)
+  available     Int                 @default(0)
+  minStock      Int                 @default(5)
+  maxStock      Int?
+  reorderPoint  Int                 @default(10)
+  cost          Decimal
+  price         Decimal
+  location      String?
+  supplier      String?
+  supplierSku   String?
+  lastRestocked DateTime?
+  lastSold      DateTime?
+  isActive      Boolean             @default(true)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  product       Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
+  alerts        InventoryAlert[]
+  movements     InventoryMovement[]
+
+  @@map("inventory")
+}
+
+model InventoryMovement {
+  id          String    @id @default(cuid())
+  inventoryId String
+  type        String
+  quantity    Int
+  reason      String?
+  reference   String?
+  notes       String?
+  userId      String?
+  createdAt   DateTime  @default(now())
+  inventory   Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  order       Order?    @relation(fields: [reference], references: [id])
+
+  @@map("inventory_movements")
+}
+
+model InventoryAlert {
+  id          String    @id @default(cuid())
+  inventoryId String
+  type        String
+  message     String
+  isRead      Boolean   @default(false)
+  isResolved  Boolean   @default(false)
+  resolvedAt  DateTime?
+  resolvedBy  String?
+  createdAt   DateTime  @default(now())
+  inventory   Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+
+  @@map("inventory_alerts")
+}
