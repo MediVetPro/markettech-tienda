@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const userId = decoded.user.userId
+    const userId = decoded.userId
     const { searchParams } = request.nextUrl
     const productIds = searchParams.get('productIds')
 

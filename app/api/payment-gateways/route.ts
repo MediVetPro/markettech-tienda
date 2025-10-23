@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
       amount: parseFloat(amount),
       currency: currency.toUpperCase(),
       orderId,
-      userId: decoded.user.userId!,
+      userId: decoded.userId!,
       gateway,
       customerInfo,
       metadata
