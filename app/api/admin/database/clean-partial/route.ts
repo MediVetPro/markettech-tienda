@@ -99,14 +99,6 @@ export async function POST(request: NextRequest) {
         await tx.product.deleteMany()
 
         // Deletar dados de comunicação
-        console.log('🗑️ Deletando participantes de chat...')
-        await tx.chatParticipant.deleteMany()
-        
-        console.log('🗑️ Deletando mensagens de chat...')
-        await tx.chatMessage.deleteMany()
-        
-        console.log('🗑️ Deletando salas de chat...')
-        await tx.chatRoom.deleteMany()
         
         console.log('🗑️ Deletando mensagens...')
         await tx.message.deleteMany()
@@ -146,12 +138,6 @@ export async function POST(request: NextRequest) {
         // NO eliminar configuraciones de comisión - mantener configuraciones del sistema
         // await tx.commissionSettings.deleteMany()
 
-        // Deletar dados de WhatsApp
-        console.log('🗑️ Deletando mensagens de WhatsApp...')
-        await tx.whatsAppMessage.deleteMany()
-        
-        console.log('🗑️ Deletando sessões de WhatsApp...')
-        await tx.whatsAppSession.deleteMany()
         
         console.log('✅ Transação de limpeza concluída com sucesso!')
       })
