@@ -289,10 +289,10 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    const priceNum = productData.price
-    const supplierPriceNum = productData.supplierPrice || 0
+    const priceNum = parseFloat(productData.price)
+    const supplierPriceNum = parseFloat(productData.supplierPrice) || 0
     
-    if (supplierPriceNum >= priceNum) {
+    if (supplierPriceNum > 0 && supplierPriceNum >= priceNum) {
       return NextResponse.json(
         { 
           error: 'El precio del proveedor debe ser menor al precio de venta',
