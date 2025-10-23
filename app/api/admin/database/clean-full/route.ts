@@ -149,34 +149,6 @@ export async function POST(request: NextRequest) {
           ]
         }
       })
-      await tx.chatParticipant.deleteMany({
-        where: {
-          userId: {
-            not: currentUserId
-          }
-        }
-      })
-      await tx.chatMessage.deleteMany({
-        where: {
-          userId: {
-            not: currentUserId
-          }
-        }
-      })
-      await tx.whatsAppMessage.deleteMany({
-        where: {
-          userId: {
-            not: currentUserId
-          }
-        }
-      })
-      await tx.whatsAppSession.deleteMany({
-        where: {
-          userId: {
-            not: currentUserId
-          }
-        }
-      })
 
       // Deletar TODOS os produtos e dados relacionados
       await tx.productRating.deleteMany()
@@ -202,9 +174,6 @@ export async function POST(request: NextRequest) {
       await tx.order.deleteMany()
 
       // Deletar dados de comunicação
-      await tx.chatParticipant.deleteMany()
-      await tx.chatMessage.deleteMany()
-      await tx.chatRoom.deleteMany()
       await tx.message.deleteMany()
       await tx.notification.deleteMany()
       await tx.notificationLog.deleteMany()
@@ -224,9 +193,6 @@ export async function POST(request: NextRequest) {
       // Deletar dados de comissão
       await tx.commissionSettings.deleteMany()
 
-      // Deletar dados de WhatsApp
-      await tx.whatsAppMessage.deleteMany()
-      await tx.whatsAppSession.deleteMany()
 
       // Deletar TODOS os usuários exceto o admin atual
       await tx.user.deleteMany({
