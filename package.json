@@ -10,6 +10,7 @@
     "monitor": "node scripts/netlify-monitor.js",
     "netlify:setup": "node scripts/netlify-setup.js",
     "netlify:status": "node scripts/netlify-status.js",
+    "netlify:simple": "node scripts/netlify-simple-monitor.js",
     "prebuild": "npm run analyze",
     "start": "next start",
     "lint": "next lint",
