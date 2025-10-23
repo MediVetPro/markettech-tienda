@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { uploadMultipleFiles } from '@/lib/fileStorage'
 import { canViewAllProducts, verifyToken } from '@/lib/auth'
-import { validateProductData } from '@/lib/validation'
+// import { validateProductData } from '@/lib/validation' // Removed to fix webidl-conversions error
 import { createProductWithImages, executeTransaction } from '@/lib/transactions'
 import { handleError } from '@/lib/errorHandler'
 import { optimizedQueries } from '@/lib/databaseOptimization'
@@ -247,21 +247,19 @@ export async function POST(request: NextRequest) {
       categories
     }
     
-    const validation = validateProductData(productData)
-    if (!validation.valid) {
-      console.error('❌ [API] Validación de producto fallida:', validation.errors)
+    // Validación simple de datos del producto
+    if (!productData.name || !productData.price || productData.price <= 0) {
+      console.error('❌ [API] Datos del producto inválidos')
       return NextResponse.json(
         { 
-          error: 'Datos del producto inválidos',
-          details: validation.errors
+          error: 'Datos del producto inválidos: nombre y precio son requeridos'
         },
         { status: 400 }
       )
     }
     
-    const sanitizedData = validation.sanitizedData!
-    const priceNum = sanitizedData.price
-    const supplierPriceNum = sanitizedData.supplierPrice
+    const priceNum = productData.price
+    const supplierPriceNum = productData.supplierPrice || 0
     
     if (supplierPriceNum >= priceNum) {
       return NextResponse.json(

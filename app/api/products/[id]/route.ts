@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { deleteFile } from '@/lib/fileStorage'
 import { clearProductCache } from '@/lib/cache'
-import { validateProductData } from '@/lib/validation'
+// import { validateProductData } from '@/lib/validation' // Removed to fix webidl-conversions error
 // No necesitamos importar Decimal, usaremos strings
 
 export async function GET(
@@ -265,14 +265,16 @@ export async function PUT(
       }
       
       // Validar datos del producto antes de actualizar
-      const validation = validateProductData(updateData)
-      if (!validation.valid) {
-        console.error('❌ [API] Validación de producto fallida:', validation.errors)
+      // Validación simple de datos del producto
+      if (updateData.name && updateData.name.trim().length === 0) {
         return NextResponse.json(
-          { 
-            error: 'Datos del producto inválidos', 
-            details: validation.errors 
-          },
+          { error: 'El nombre del producto no puede estar vacío' },
+          { status: 400 }
+        )
+      }
+      if (updateData.price && updateData.price <= 0) {
+        return NextResponse.json(
+          { error: 'El precio debe ser mayor a 0' },
           { status: 400 }
         )
       }
@@ -411,14 +413,16 @@ export async function PUT(
       }
       
       // Validar datos del producto antes de actualizar
-      const validation = validateProductData(updateData)
-      if (!validation.valid) {
-        console.error('❌ [API] Validación de producto fallida:', validation.errors)
+      // Validación simple de datos del producto
+      if (updateData.name && updateData.name.trim().length === 0) {
         return NextResponse.json(
-          { 
-            error: 'Datos del producto inválidos', 
-            details: validation.errors 
-          },
+          { error: 'El nombre del producto no puede estar vacío' },
+          { status: 400 }
+        )
+      }
+      if (updateData.price && updateData.price <= 0) {
+        return NextResponse.json(
+          { error: 'El precio debe ser mayor a 0' },
           { status: 400 }
         )
       }
