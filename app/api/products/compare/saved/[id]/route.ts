@@ -28,7 +28,7 @@ export async function GET(
       )
     }
 
-    const userId = decoded.user.userId
+    const userId = decoded.userId
     const comparisonId = params.id
 
     const comparison = await prisma.savedComparison.findFirst({
@@ -119,7 +119,7 @@ export async function PUT(
       )
     }
 
-    const userId = decoded.user.userId
+    const userId = decoded.userId
     const comparisonId = params.id
     const { name, productIds, notes } = await request.json()
 
@@ -213,7 +213,7 @@ export async function DELETE(
       )
     }
 
-    const userId = decoded.user.userId
+    const userId = decoded.userId
     const comparisonId = params.id
 
     // Verificar que la comparación existe y pertenece al usuario

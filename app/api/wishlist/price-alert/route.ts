@@ -25,7 +25,7 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    const userId = decoded.user.userId
+    const userId = decoded.userId
     const { productId, priceAlertEnabled, targetPrice } = await request.json()
 
     if (!productId) {
@@ -149,7 +149,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const userId = decoded.user.userId
+    const userId = decoded.userId
 
     const priceAlerts = await prisma.wishlistItem.findMany({
       where: {

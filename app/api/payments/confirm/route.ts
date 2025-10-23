@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     const payment = await prisma.payment.findFirst({
       where: {
         providerId: paymentIntentId,
-        userId: decoded.user.userId
+        userId: decoded.userId
       },
       select: {
         id: true,
