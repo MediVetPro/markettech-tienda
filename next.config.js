@@ -44,8 +44,8 @@ const nextConfig = {
   webpack: (config, { dev, isServer }) => {
     if (dev && !isServer) {
       config.watchOptions = {
-        poll: 500, // Reducido de 1000 a 500ms
-        aggregateTimeout: 200, // Reducido de 300 a 200ms
+        poll: 500,
+        aggregateTimeout: 200,
         ignored: ['**/node_modules/**', '**/.git/**', '**/prisma/dev.db*']
       }
     }

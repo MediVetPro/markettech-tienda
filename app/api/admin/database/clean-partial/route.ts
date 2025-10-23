@@ -138,9 +138,14 @@ export async function POST(request: NextRequest) {
       console.log(`🗑️ Deletando ${imagePaths.length} arquivos de imagem...`)
       for (const imagePath of imagePaths) {
         try {
-          const fullPath = join(process.cwd(), 'public', imagePath)
-          await unlink(fullPath)
-          console.log(`🗑️ Imagem deletada: ${imagePath}`)
+          // Solo eliminar si es una imagen local (no URL externa)
+          if (!imagePath.startsWith('http')) {
+            const fullPath = join(process.cwd(), 'public', imagePath)
+            await unlink(fullPath)
+            console.log(`🗑️ Imagem deletada: ${imagePath}`)
+          } else {
+            console.log(`📸 Imagem externa ignorada: ${imagePath}`)
+          }
         } catch (error) {
           console.warn(`⚠️ Não foi possível deletar imagem ${imagePath}:`, error)
         }
