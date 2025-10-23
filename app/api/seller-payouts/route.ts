@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     // Verificar que el usuario es ADMIN_VENDAS
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
+      where: { id: decoded.user.userId },
       select: { role: true }
     })
 
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
 
     // Obtener pagos del vendedor
     const payouts = await prisma.sellerPayout.findMany({
-      where: { sellerId: decoded.userId },
+      where: { sellerId: decoded.user.userId },
       include: {
         order: {
           select: {
@@ -107,7 +107,7 @@ export async function PUT(request: NextRequest) {
 
     // Verificar que el usuario es ADMIN
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
+      where: { id: decoded.user.userId },
       select: { role: true }
     })
 
