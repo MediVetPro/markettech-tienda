@@ -88,14 +88,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     
     // Verificar que localStorage esté disponible
     if (typeof window === 'undefined') {
-      console.log('🔄 [AUTH] localStorage no disponible (SSR)')
       setLoading(false)
       setIsInitialized(true)
       return
-    }
-    
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔄 [AUTH] Inicializando contexto de autenticación...')
     }
     
     // Función para inicializar autenticación
@@ -105,26 +100,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const savedUser = localStorage.getItem('smartesh_user')
         const savedToken = localStorage.getItem('smartesh_token')
         
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🔄 [AUTH] Verificando usuario guardado:', savedUser ? 'Sí' : 'No')
-          console.log('🔄 [AUTH] Verificando token guardado:', savedToken ? 'Sí' : 'No')
-        }
+        // Verificación silenciosa para mejor rendimiento
         
         if (savedUser && savedToken) {
           try {
             const parsedUser = JSON.parse(savedUser)
-            if (process.env.NODE_ENV === 'development') {
-              console.log('🔄 [AUTH] Usuario parseado correctamente:', parsedUser.name)
-            }
+            // Usuario parseado correctamente
             
             // Verificar que el token sea válido usando una verificación simple
             if (savedToken && savedToken.length > 10) {
               // Verificar que el token tenga el formato JWT básico (3 partes separadas por puntos)
               const tokenParts = savedToken.split('.')
               if (tokenParts.length === 3) {
-                if (process.env.NODE_ENV === 'development') {
-                  console.log('✅ [AUTH] Token válido, estableciendo usuario')
-                }
                 setUser(parsedUser)
               } else {
                 throw new Error('Token format invalid')
@@ -133,26 +120,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
               throw new Error('Token empty or too short')
             }
           } catch (tokenError) {
-            console.error('❌ [AUTH] Token inválido o expirado:', tokenError.message)
-            if (process.env.NODE_ENV === 'development') {
-              console.log('🧹 [AUTH] Limpiando datos de autenticación...')
-            }
+            // Limpiar datos de autenticación inválidos
             localStorage.removeItem('smartesh_user')
             localStorage.removeItem('smartesh_token')
             localStorage.removeItem('smartesh_cart_temp')
             setUser(null)
           }
         } else {
-          if (process.env.NODE_ENV === 'development') {
-            console.log('ℹ️ [AUTH] No hay usuario o token guardado')
-          }
           setUser(null)
         }
       } catch (error) {
-        console.error('❌ [AUTH] Error parsing saved user:', error)
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🧹 [AUTH] Limpiando localStorage corrupto...')
-        }
+        // Limpiar localStorage corrupto
         localStorage.removeItem('smartesh_user')
         localStorage.removeItem('smartesh_token')
         localStorage.removeItem('smartesh_cart_temp')
@@ -161,9 +139,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // Siempre establecer loading como false después de verificar
         setLoading(false)
         setIsInitialized(true)
-        if (process.env.NODE_ENV === 'development') {
-          console.log('✅ [AUTH] Contexto inicializado')
-        }
       }
     }
     
@@ -341,17 +316,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isInitialized
   }
 
-  // Debug: Log del estado del contexto (solo en desarrollo)
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🔍 [AUTH] Context state:', {
-      user: user?.name || 'No user',
-      isAuthenticated: !!user,
-      isAdmin: user?.role === 'ADMIN',
-      isAdminVendas: user?.role === 'ADMIN_VENDAS',
-      canViewAllOrders: user?.role === 'ADMIN' || user?.role === 'ADMIN_VENDAS',
-      canManageProducts: user?.role === 'ADMIN' || user?.role === 'ADMIN_VENDAS'
-    })
-  }
+  // Debug removido para mejor rendimiento
 
   return (
     <AuthContext.Provider value={value}>
