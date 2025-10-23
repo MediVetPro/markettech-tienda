@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Configuración optimizada para Netlify
   images: {
-    domains: ['localhost', 'vercel.app', 'markettech.vercel.app'],
+    domains: ['localhost', 'netlify.app', 'smartesh.netlify.app'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -10,14 +11,36 @@ const nextConfig = {
     ],
   },
   experimental: {
-    serverComponentsExternalPackages: ['@prisma/client']
+    serverComponentsExternalPackages: ['@prisma/client'],
   },
-  // Optimizaciones para desarrollo más rápido
+  // Optimizaciones para Netlify
   swcMinify: true,
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  // Configuración optimizada para WebSocket HMR
+  // Configuración de headers para APIs
+  async headers() {
+    return [
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET, POST, PUT, DELETE, OPTIONS',
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'Content-Type, Authorization',
+          },
+        ],
+      },
+    ]
+  },
+  // Optimizaciones para desarrollo más rápido
   webpack: (config, { dev, isServer }) => {
     if (dev && !isServer) {
       config.watchOptions = {
