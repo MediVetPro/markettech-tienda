@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const userId = decoded.user.userId
+    const userId = decoded.userId
     const { orderId, paymentMethodId } = await request.json()
 
     if (!orderId) {
