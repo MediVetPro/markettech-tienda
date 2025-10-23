@@ -199,11 +199,31 @@ export async function POST(request: NextRequest) {
     let userId: string
     try {
       const jwt = require('jsonwebtoken')
-      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any
+      const jwtSecret = process.env.JWT_SECRET
+      
+      if (!jwtSecret) {
+        console.error('❌ [API] JWT_SECRET no configurado')
+        return NextResponse.json(
+          { error: 'Configuración de servidor incorrecta' },
+          { status: 500 }
+        )
+      }
+      
+      const decoded = jwt.verify(token, jwtSecret) as any
+      console.log('🔍 [API] Token decodificado:', { userId: decoded.userId, email: decoded.email, role: decoded.role })
+      
+      if (!decoded.userId) {
+        console.error('❌ [API] Token sin userId:', decoded)
+        return NextResponse.json(
+          { error: 'Token malformado' },
+          { status: 401 }
+        )
+      }
+      
       userId = decoded.userId
     } catch (error) {
-      console.error('Error verifying token:', error)
-      return NextResponse.json({ error: 'Token inválido' }, { status: 401 })
+      console.error('❌ [API] Error verificando token:', error)
+      return NextResponse.json({ error: 'Token inválido o expirado' }, { status: 401 })
     }
 
     console.log('📝 [API] Obteniendo FormData...')
@@ -378,6 +398,35 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ...product, images }, { status: 201 })
   } catch (error) {
     console.error('❌ [API] Error creando producto:', error)
-    return handleError(error)
+    
+    // Manejo específico de errores
+    if (error instanceof Error) {
+      console.error('❌ [API] Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      })
+      
+      // Si es un error de Prisma
+      if (error.message.includes('Unique constraint')) {
+        return NextResponse.json(
+          { error: 'Ya existe un producto con estos datos únicos' },
+          { status: 400 }
+        )
+      }
+      
+      // Si es un error de validación
+      if (error.message.includes('Invalid')) {
+        return NextResponse.json(
+          { error: 'Datos del producto inválidos' },
+          { status: 400 }
+        )
+      }
+    }
+    
+    return NextResponse.json(
+      { error: 'Error interno del servidor al crear producto' },
+      { status: 500 }
+    )
   }
 }
