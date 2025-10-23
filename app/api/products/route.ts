@@ -343,27 +343,24 @@ export async function POST(request: NextRequest) {
         const uploadResult = await uploadMultipleToCloudinary(imageFiles, 'products')
         console.log('☁️ [API] Resultado de subida a Cloudinary:', uploadResult)
         
-        if (!uploadResult.success) {
-          console.error('❌ [API] Error en subida de imágenes a Cloudinary:', uploadResult.error)
-          return NextResponse.json(
-            { error: `Error subiendo imágenes: ${uploadResult.error}` },
-            { status: 500 }
-          )
+        if (uploadResult.success && uploadResult.results) {
+          // Preparar datos de imágenes con URLs de Cloudinary
+          imageData = uploadResult.results.map((result: any, index: number) => ({
+            path: result.url, // URL de Cloudinary
+            filename: result.public_id, // Public ID de Cloudinary
+            alt: `Imagen ${index + 1}`,
+            order: index
+          }))
+          console.log('✅ [API] Imágenes subidas exitosamente:', imageData.length)
+        } else {
+          console.warn('⚠️ [API] Error en subida de imágenes, continuando sin imágenes:', uploadResult.error)
+          // Continuar sin imágenes - no fallar la creación del producto
+          imageData = []
         }
-        
-        // Preparar datos de imágenes con URLs de Cloudinary
-        imageData = uploadResult.results!.map((result: any, index: number) => ({
-          path: result.url, // URL de Cloudinary
-          filename: result.public_id, // Public ID de Cloudinary
-          alt: `Imagen ${index + 1}`,
-          order: index
-        }))
       } catch (uploadError) {
-        console.error('❌ [API] Error en subida de imágenes a Cloudinary (catch):', uploadError)
-        return NextResponse.json(
-          { error: `Error subiendo imágenes: ${uploadError instanceof Error ? uploadError.message : 'Unknown error'}` },
-          { status: 500 }
-        )
+        console.warn('⚠️ [API] Error en subida de imágenes a Cloudinary, continuando sin imágenes:', uploadError)
+        // Continuar sin imágenes - no fallar la creación del producto
+        imageData = []
       }
     }
 
@@ -416,7 +413,24 @@ export async function POST(request: NextRequest) {
     clearProductCache()
 
     console.log('🎉 [API] Producto creado exitosamente!')
-    return NextResponse.json({ ...product, images }, { status: 201 })
+    
+    // Preparar respuesta con información sobre las imágenes
+    const response = {
+      ...product,
+      images,
+      imageStatus: {
+        total: imageFiles.length,
+        uploaded: images.length,
+        success: images.length > 0,
+        message: images.length > 0 
+          ? `Producto creado exitosamente con ${images.length} imagen(es)`
+          : imageFiles.length > 0 
+            ? 'Producto creado exitosamente, pero las imágenes no se pudieron subir'
+            : 'Producto creado exitosamente sin imágenes'
+      }
+    }
+    
+    return NextResponse.json(response, { status: 201 })
   } catch (error) {
     console.error('❌ [API] Error creando producto:', error)
     

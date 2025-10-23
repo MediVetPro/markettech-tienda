@@ -19,6 +19,16 @@ export async function uploadToCloudinary(
   folder: string = 'products'
 ): Promise<CloudinaryUploadResult> {
   try {
+    // Verificar si Cloudinary está configurado
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      console.warn('⚠️ [CLOUDINARY] Variables de entorno no configuradas, usando placeholder')
+      return {
+        success: true,
+        url: '/placeholder.jpg', // Imagen placeholder local
+        public_id: `placeholder-${Date.now()}`
+      }
+    }
+
     console.log(`☁️ [CLOUDINARY] Subiendo archivo: ${file.name}`)
     
     // Convertir File a Buffer
