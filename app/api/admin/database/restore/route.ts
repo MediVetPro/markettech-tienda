@@ -135,9 +135,7 @@ export async function POST(request: NextRequest) {
         'PushSubscription': 'pushSubscription',
         'UserCart': 'userCart',
         'CartItem': 'cartItem',
-        'Inventory': 'inventory',
-        'InventoryMovement': 'inventoryMovement',
-        'InventoryAlert': 'inventoryAlert',
+        // Inventory models removed
         'UserEvent': 'userEvent',
         'UserSession': 'userSession',
         'AnalyticsMetric': 'analyticsMetric'

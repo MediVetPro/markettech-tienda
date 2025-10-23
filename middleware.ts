@@ -25,9 +25,9 @@ export function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/api/')) {
     // Headers para APIs (sin headers que bloqueen CORS)
     const safeHeaders = { ...securityHeaders }
-    delete safeHeaders['Cross-Origin-Resource-Policy']
-    delete safeHeaders['Cross-Origin-Embedder-Policy']
-    delete safeHeaders['Cross-Origin-Opener-Policy']
+    delete (safeHeaders as any)['Cross-Origin-Resource-Policy']
+    delete (safeHeaders as any)['Cross-Origin-Embedder-Policy']
+    delete (safeHeaders as any)['Cross-Origin-Opener-Policy']
     
     Object.entries(safeHeaders).forEach(([key, value]) => {
       response.headers.set(key, value)

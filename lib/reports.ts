@@ -415,18 +415,13 @@ function calculateItemCost(
   product: any, 
   defaultMargin: number | undefined
 ): { cost: number; method: string } {
-  const inventory = product.inventory[0]
+  // No inventory system - use supplier price
   const itemRevenue = item.price * item.quantity
   let itemCost = 0
   let costMethod = ''
 
-  // 1. PRIORIDAD: Costo real del inventario (más preciso)
-  if (inventory && inventory.cost && typeof inventory.cost.toNumber === 'function') {
-    itemCost = inventory.cost.toNumber() * item.quantity
-    costMethod = 'inventory_cost'
-  }
-  // 2. FALLBACK: Precio del proveedor (confiable)
-  else if (product.supplierPrice && typeof product.supplierPrice.toNumber === 'function') {
+  // Use supplier price as fallback (inventory system removed)
+  if (product.supplierPrice && typeof product.supplierPrice.toNumber === 'function') {
     itemCost = product.supplierPrice.toNumber() * item.quantity
     costMethod = 'supplier_price'
   }
@@ -476,7 +471,7 @@ export async function generateFinancialReport(
           include: {
             product: {
               include: {
-                inventory: true
+                // inventory: true // Inventory system removed
               }
             },
             // Ensure we have item price and quantity already loaded
@@ -489,7 +484,7 @@ export async function generateFinancialReport(
     let totalRevenue = 0
     let totalCosts = 0
     let costCalculationStats = {
-      inventoryCost: 0,
+        inventoryCost: 0, // No inventory system
       supplierPrice: 0,
       marginPercentage: 0,
       defaultMargin: 0,
@@ -521,7 +516,7 @@ export async function generateFinancialReport(
 
     // Log de estadísticas de cálculo
     console.log('📈 [COST STATS] Métodos de cálculo utilizados:')
-    console.log(`   - Costo de inventario: ${costCalculationStats.inventoryCost} productos`)
+    console.log(`   - Costo de inventario: ${costCalculationStats.inventoryCost} productos (inventory system removed)`)
     console.log(`   - Precio del proveedor: ${costCalculationStats.supplierPrice} productos`)
     console.log(`   - Margen individual: ${costCalculationStats.marginPercentage} productos`)
     console.log(`   - Margen global: ${costCalculationStats.defaultMargin} productos`)
