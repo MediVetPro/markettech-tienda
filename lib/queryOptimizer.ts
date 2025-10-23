@@ -149,8 +149,7 @@ export class QueryOptimizer {
         totalUsers,
         totalOrders,
         totalRevenue,
-        recentOrders,
-        lowStockProducts
+        recentOrders
       ] = await Promise.all([
         prisma.product.count({ where: { status: 'ACTIVE' } }),
         prisma.user.count(),
@@ -169,26 +168,6 @@ export class QueryOptimizer {
           },
           orderBy: { createdAt: 'desc' },
           take: 5
-        }),
-        prisma.inventory.findMany({
-          where: {
-            OR: [
-              { quantity: { lte: 5 } },
-              { quantity: { lte: 0 } }
-            ]
-          },
-          select: {
-            id: true,
-            quantity: true,
-            minStock: true,
-            product: {
-              select: {
-                id: true,
-                title: true
-              }
-            }
-          },
-          take: 10
         })
       ])
 
@@ -198,14 +177,7 @@ export class QueryOptimizer {
         totalOrders,
         totalRevenue: totalRevenue._sum.total || 0,
         recentOrders,
-        lowStockProducts: lowStockProducts.map(item => ({
-          id: item.id,
-          productId: item.product.id,
-          productTitle: item.product.title,
-          currentStock: item.quantity,
-          minStock: item.minStock,
-          status: item.quantity <= 0 ? 'OUT' : 'LOW'
-        }))
+        lowStockProducts: [] // Inventory system removed
       }
 
       this.queryCache.set(cacheKey, {
