@@ -92,7 +92,10 @@ export async function GET(request: NextRequest) {
     // Si es una consulta de usuario autenticado, mostrar solo sus órdenes
     if (userOnly) {
       const authHeader = request.headers.get('authorization')
+      console.log('🔍 [API] Authorization header:', authHeader ? 'Presente' : 'Ausente')
+      
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        console.error('❌ [API] Token de autorización requerido')
         return NextResponse.json(
           { error: 'Token de autorización requerido' },
           { status: 401 }
@@ -104,9 +107,20 @@ export async function GET(request: NextRequest) {
       
       try {
         decoded = jwt.verify(token, process.env.JWT_SECRET!)
+        console.log('🔍 [API] Token decodificado:', { userId: decoded.userId, email: decoded.email, role: decoded.role })
       } catch (error) {
+        console.error('❌ [API] Error verificando token:', error)
         return NextResponse.json(
           { error: 'Token inválido' },
+          { status: 401 }
+        )
+      }
+
+      // Verificar que el token tiene la estructura correcta
+      if (!decoded.userId) {
+        console.error('❌ [API] Token sin userId:', decoded)
+        return NextResponse.json(
+          { error: 'Token malformado' },
           { status: 401 }
         )
       }

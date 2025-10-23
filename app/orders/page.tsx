@@ -73,7 +73,17 @@ export default function OrdersPage() {
         console.log('📦 Pedidos carregados:', data.orders)
       } else {
         const errorData = await response.json()
-        setError(errorData.message || 'Erro ao carregar os pedidos')
+        console.error('❌ [API] Error cargando pedidos:', response.status, errorData)
+        
+        if (response.status === 401) {
+          setError('Sessão expirada. Por favor, faça login novamente.')
+          // Redirigir al login después de un breve delay
+          setTimeout(() => {
+            router.push('/login')
+          }, 2000)
+        } else {
+          setError(errorData.message || 'Erro ao carregar os pedidos')
+        }
       }
     } catch (error) {
       console.error('Error loading orders:', error)
