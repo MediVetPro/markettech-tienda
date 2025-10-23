@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import { verifyJWT } from '@/lib/jwt'
-import { sanitizeHtml, validateTextLength } from '@/lib/validation'
 
 const prisma = new PrismaClient()
 
@@ -68,11 +67,11 @@ export async function POST(request: NextRequest) {
     // Validar y sanitizar comentario si existe
     let sanitizedComment = null
     if (comment && comment.trim()) {
-      const commentValidation = validateTextLength(comment, 'Comentario', 1, 500)
-      if (!commentValidation.valid) {
-        return NextResponse.json({ error: commentValidation.error }, { status: 400 })
+      // Validación simple de comentario
+      if (comment && (comment.length < 1 || comment.length > 500)) {
+        return NextResponse.json({ error: 'El comentario debe tener entre 1 y 500 caracteres' }, { status: 400 })
       }
-      sanitizedComment = sanitizeHtml(commentValidation.value!)
+      sanitizedComment = comment ? comment.trim() : ''
     }
 
     // Verificar que el producto existe
