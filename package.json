@@ -47,6 +47,7 @@
     "bcryptjs": "^2.4.3",
     "canvas": "^3.2.0",
     "dompurify": "^3.3.0",
+    "dotenv": "^17.2.3",
     "eslint": "^8",
     "eslint-config-next": "14.0.4",
     "express-rate-limit": "^8.1.0",
