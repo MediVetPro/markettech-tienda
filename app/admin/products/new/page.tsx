@@ -9,6 +9,12 @@ import { CategorySelector } from '@/components/CategorySelector'
 import { Combobox } from '@/components/Combobox'
 
 export default function AdminNewProductPage() {
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -350,6 +356,15 @@ export default function AdminNewProductPage() {
       setIsLoading(false)
       setIsSubmitting(false)
     }
+  }
+
+  if (!isClient) {
+    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Cargando...</p>
+      </div>
+    </div>
   }
 
   return (
