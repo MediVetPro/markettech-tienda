@@ -476,7 +476,7 @@ export async function DELETE(
     try {
       const jwt = require('jsonwebtoken')
       const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any
-      userId = decoded.user.userId
+      userId = decoded.userId
       console.log('👤 [API] Usuario autenticado:', userId)
     } catch (error) {
       console.error('❌ [API] Error verificando token:', error)

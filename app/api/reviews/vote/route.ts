@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const userId = decoded.user.userId
+    const userId = decoded.userId
     const { reviewId, isHelpful } = await request.json()
 
     if (!reviewId || typeof isHelpful !== 'boolean') {
@@ -176,7 +176,7 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    const userId = decoded.user.userId
+    const userId = decoded.userId
     const { searchParams } = request.nextUrl
     const reviewId = searchParams.get('reviewId')
 

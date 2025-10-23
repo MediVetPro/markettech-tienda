@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     console.log('🚨 Iniciando limpeza COMPLETA da base de dados...')
 
     // Obter ID do usuário atual para preservar
-    const currentUserId = decoded.user.userId
+    const currentUserId = decoded.userId
 
     // Obter todas as imagens antes de deletar
     const productImages = await prisma.productImage.findMany()

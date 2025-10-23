@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const userId = decoded.user.userId
+    const userId = decoded.userId
     const { subscription } = await request.json()
 
     if (!subscription || !subscription.endpoint || !subscription.keys) {
@@ -82,7 +82,7 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    const userId = decoded.user.userId
+    const userId = decoded.userId
     const { searchParams } = request.nextUrl
     const endpoint = searchParams.get('endpoint')
 
