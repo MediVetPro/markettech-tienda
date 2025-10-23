@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const userId = decoded.userId
+    const userId = decoded.user.userId
     const { searchParams } = request.nextUrl
     const type = searchParams.get('type')
     const category = searchParams.get('category')
@@ -126,7 +126,7 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    const userId = decoded.userId
+    const userId = decoded.user.userId
     const { searchParams } = request.nextUrl
     const olderThan = searchParams.get('olderThan') // Días
 

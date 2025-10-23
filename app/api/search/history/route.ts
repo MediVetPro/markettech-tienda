@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const userId = decoded.userId
+    const userId = decoded.user.userId
     const { searchParams } = request.nextUrl
     const limit = parseInt(searchParams.get('limit') || '20')
 
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const userId = decoded.userId
+    const userId = decoded.user.userId
     const { query, category, resultCount } = await request.json()
 
     if (!query || query.trim().length < 2) {
@@ -140,7 +140,7 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    const userId = decoded.userId
+    const userId = decoded.user.userId
 
     // Limpiar caché del usuario
     clearUserCache(userId)

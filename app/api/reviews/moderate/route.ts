@@ -182,7 +182,7 @@ export async function PUT(request: NextRequest) {
       where: { id: reviewId },
       data: {
         status: action === 'APPROVE' ? 'APPROVED' : 'REJECTED',
-        moderatedBy: decoded.userId,
+        moderatedBy: decoded.user.userId,
         moderatedAt: new Date(),
         reason: action === 'REJECT' ? reason : null
       },
