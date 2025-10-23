@@ -69,13 +69,6 @@ export async function POST(request: NextRequest) {
           }
         }
       })
-      await tx.couponUsage.deleteMany({
-        where: {
-          userId: {
-            not: currentUserId
-          }
-        }
-      })
       await tx.cartItem.deleteMany({
         where: {
           userCart: {
@@ -156,8 +149,6 @@ export async function POST(request: NextRequest) {
       await tx.review.deleteMany()
       await tx.wishlistItem.deleteMany()
       await tx.savedComparison.deleteMany()
-      await tx.couponUsage.deleteMany()
-      await tx.coupon.deleteMany()
       await tx.cartItem.deleteMany()
       await tx.userCart.deleteMany()
       await tx.inventoryAlert.deleteMany()

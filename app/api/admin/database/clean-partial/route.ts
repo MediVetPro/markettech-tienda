@@ -71,11 +71,6 @@ export async function POST(request: NextRequest) {
         console.log('🗑️ Deletando comparações salvas...')
         await tx.savedComparison.deleteMany()
         
-        console.log('🗑️ Deletando usos de cupons...')
-        await tx.couponUsage.deleteMany()
-        
-        console.log('🗑️ Deletando cupons...')
-        await tx.coupon.deleteMany()
         
         console.log('🗑️ Deletando itens do carrinho...')
         await tx.cartItem.deleteMany()

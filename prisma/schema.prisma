@@ -26,7 +26,6 @@ model User {
   createdAt               DateTime                 @default(now())
   updatedAt               DateTime                 @updatedAt
   lastLoginAt             DateTime?
-  couponUsages            CouponUsage[]
   receivedMessages        Message[]                @relation("MessageRecipient")
   sentMessages            Message[]                @relation("MessageSender")
   notificationPreferences NotificationPreference[]
@@ -355,41 +354,6 @@ model SavedComparison {
   @@map("saved_comparisons")
 }
 
-model Coupon {
-  id             String        @id @default(cuid())
-  code           String        @unique
-  name           String
-  description    String?
-  type           String
-  value          Decimal
-  minOrderAmount Decimal?
-  maxDiscount    Decimal?
-  category       String?
-  usageLimit     Int?
-  usageCount     Int           @default(0)
-  userLimit      Int           @default(1)
-  isActive       Boolean       @default(true)
-  validFrom      DateTime      @default(now())
-  validUntil     DateTime?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  usages         CouponUsage[]
-
-  @@map("coupons")
-}
-
-model CouponUsage {
-  id       String   @id @default(cuid())
-  couponId String
-  userId   String
-  orderId  String?
-  usedAt   DateTime @default(now())
-  coupon   Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([couponId, userId, orderId])
-  @@map("coupon_usages")
-}
 
 
 model PushSubscription {
