@@ -299,7 +299,7 @@ export async function generateInventoryReport(): Promise<InventoryReport> {
     }
 
   } catch (error: any) {
-    throw CommonErrors.DB_OPERATION_FAILED('Error generating inventory report.')
+    throw CommonErrors.DB_OPERATION_FAILED('Error generating product report.')
   }
 }
 

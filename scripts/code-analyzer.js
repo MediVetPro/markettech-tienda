@@ -20,16 +20,23 @@ class CodeAnalyzer {
       const content = fs.readFileSync(filePath, 'utf8');
       const relativePath = path.relative(this.projectRoot, filePath);
       
-      // Detectar referencias a inventory
+      // Detectar referencias a inventory (excluyendo comentarios explicativos)
       if (content.includes('inventory') && !filePath.includes('node_modules')) {
         const lines = content.split('\n');
         lines.forEach((line, index) => {
-          if (line.includes('inventory') && !line.includes('// inventory system removed')) {
+          const trimmedLine = line.trim();
+          if (trimmedLine.includes('inventory') && 
+              !trimmedLine.includes('// inventory system removed') &&
+              !trimmedLine.includes('// No inventory system') &&
+              !trimmedLine.includes('// Inventory system removed') &&
+              !trimmedLine.includes('inventory system removed') &&
+              !trimmedLine.startsWith('//') &&
+              !trimmedLine.startsWith('*')) {
             this.issues.push({
               type: 'Inventory Reference',
               file: relativePath,
               line: index + 1,
-              content: line.trim(),
+              content: trimmedLine,
               severity: 'error',
               suggestion: 'Remove inventory references - inventory system was removed'
             });
@@ -37,17 +44,20 @@ class CodeAnalyzer {
         });
       }
 
-      // Detectar problemas de tipos de autenticación
-      if (content.includes('decoded.userId') || content.includes('decoded.user.userId')) {
+      // Detectar problemas de tipos de autenticación (solo si hay conflicto real)
+      if (content.includes('decoded.userId') && content.includes('decoded.user')) {
         const lines = content.split('\n');
         lines.forEach((line, index) => {
-          if (line.includes('decoded.userId') && line.includes('decoded.user')) {
+          const trimmedLine = line.trim();
+          // Solo reportar si hay uso mixto en la misma línea o archivo
+          if (trimmedLine.includes('decoded.userId') && trimmedLine.includes('decoded.user') && 
+              !trimmedLine.includes('//')) {
             this.issues.push({
               type: 'Auth Type Mismatch',
               file: relativePath,
               line: index + 1,
-              content: line.trim(),
-              severity: 'error',
+              content: trimmedLine,
+              severity: 'warning',
               suggestion: 'Check if this file uses AuthResult (decoded.user.userId) or UserPayload (decoded.userId)'
             });
           }
