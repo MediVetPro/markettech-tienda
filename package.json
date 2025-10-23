@@ -8,6 +8,8 @@
     "verify": "node scripts/verify-deployment.js",
     "analyze": "node scripts/code-analyzer.js",
     "monitor": "node scripts/netlify-monitor.js",
+    "netlify:setup": "node scripts/netlify-setup.js",
+    "netlify:status": "node scripts/netlify-status.js",
     "prebuild": "npm run analyze",
     "start": "next start",
     "lint": "next lint",

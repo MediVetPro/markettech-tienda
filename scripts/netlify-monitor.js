@@ -10,7 +10,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Configuración
-const NETLIFY_SITE_ID = 'smartesh'; // Reemplazar con tu site ID
+const NETLIFY_SITE_ID = process.env.NETLIFY_SITE_ID || 'smartesh'; // Site ID de Netlify
 const NETLIFY_ACCESS_TOKEN = process.env.NETLIFY_ACCESS_TOKEN; // Token de acceso de Netlify
 const CHECK_INTERVAL = 30000; // 30 segundos
 const MAX_RETRIES = 10;
