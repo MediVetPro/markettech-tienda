@@ -76,29 +76,9 @@ export function ProductDetailClient({ productId, isAdminView = false }: ProductD
           return
         }
       } catch (apiError) {
-        console.warn('⚠️ Error al cargar desde API, usando datos mock:', apiError)
+        console.warn('⚠️ Error al cargar desde API:', apiError)
+        setProduct(null)
       }
-      
-      // Fallback a datos mock si la API falla
-      const mockProduct: Product = {
-        id: productId,
-        title: 'iPhone 15 Pro Max 256GB',
-        description: 'El iPhone más avanzado con chip A17 Pro y cámara de 48MP. Diseño premium en titanio con pantalla Super Retina XDR de 6.7 pulgadas. Perfecto para fotografía profesional y gaming intensivo.',
-        price: 1299.99,
-        supplierPrice: 1000,
-        marginPercentage: 30,
-        condition: 'NEW',
-        aestheticCondition: 10,
-        specifications: 'Pantalla 6.7" Super Retina XDR, Chip A17 Pro, 256GB almacenamiento, iOS 17, Cámara principal 48MP, Cámara ultra gran angular 12MP, Cámara teleobjetivo 12MP, Resistencia al agua IP68',
-        stock: 5, // Stock disponible
-        images: [
-          { path: '/uploads/products/product_1/iphone15_frontal.jpg', filename: 'iphone15_frontal.jpg', alt: 'iPhone 15 Pro Max frontal' },
-          { path: '/uploads/products/product_1/iphone15_trasera.jpg', filename: 'iphone15_trasera.jpg', alt: 'iPhone 15 Pro Max trasera' },
-          { path: '/uploads/products/product_1/iphone15_lateral.jpg', filename: 'iphone15_lateral.jpg', alt: 'iPhone 15 Pro Max lateral' }
-        ]
-      }
-      setProduct(mockProduct)
-      console.log('📦 Usando datos mock como fallback')
     }
     
     fetchProduct()

@@ -32,105 +32,11 @@ export function FeaturedProducts() {
           setProducts(data.products || [])
         } else {
           console.error('❌ [FEATURED] Error cargando productos:', response.status)
-          // Fallback a productos mock si falla la API
-          const mockProducts: Product[] = [
-            {
-              id: '1',
-              title: 'iPhone 15 Pro Max 256GB',
-              price: 1299.99,
-              supplierPrice: 1000,
-              marginPercentage: 30,
-              condition: 'NEW',
-              aestheticCondition: 10,
-              images: [{ path: '/uploads/products/product_1/iphone15.jpg', filename: 'iphone15.jpg', alt: 'iPhone 15 Pro Max' }],
-              stock: 5
-            },
-            {
-              id: '2',
-              title: 'MacBook Pro M3 14"',
-              price: 1999.99,
-              supplierPrice: 1500,
-              marginPercentage: 33,
-              condition: 'USED',
-              aestheticCondition: 9,
-              images: [{ path: '/uploads/products/product_2/macbook.jpg', filename: 'macbook.jpg', alt: 'MacBook Pro M3' }],
-              stock: 3
-            },
-            {
-              id: '3',
-              title: 'AirPods Pro 2da Gen',
-              price: 249.99,
-              supplierPrice: 200,
-              marginPercentage: 25,
-              condition: 'NEW',
-              aestheticCondition: 10,
-              images: [{ path: '/uploads/products/product_3/airpods.jpg', filename: 'airpods.jpg', alt: 'AirPods Pro' }],
-              stock: 8
-            },
-            {
-              id: '4',
-              title: 'Samsung Galaxy S24 Ultra',
-              price: 1199.99,
-              supplierPrice: 900,
-              marginPercentage: 33,
-              condition: 'USED',
-              aestheticCondition: 8,
-              images: [{ path: '/uploads/products/product_4/samsung.jpg', filename: 'samsung.jpg', alt: 'Samsung Galaxy S24' }],
-              stock: 2
-            }
-          ]
-          setProducts(mockProducts)
+          setProducts([])
         }
       } catch (error) {
         console.error('❌ [FEATURED] Error cargando productos:', error)
-        // Fallback a productos mock si hay error
-        const mockProducts: Product[] = [
-          {
-            id: '1',
-            title: 'iPhone 15 Pro Max 256GB',
-            price: 1299.99,
-            supplierPrice: 1000,
-            marginPercentage: 30,
-            condition: 'NEW',
-            aestheticCondition: 10,
-            images: [{ path: '/uploads/products/product_1/iphone15.jpg', filename: 'iphone15.jpg', alt: 'iPhone 15 Pro Max' }],
-            stock: 5
-          },
-          {
-            id: '2',
-            title: 'MacBook Pro M3 14"',
-            price: 1999.99,
-            supplierPrice: 1500,
-            marginPercentage: 33,
-            condition: 'USED',
-            aestheticCondition: 9,
-            images: [{ path: '/uploads/products/product_2/macbook.jpg', filename: 'macbook.jpg', alt: 'MacBook Pro M3' }],
-            stock: 3
-          },
-          {
-            id: '3',
-            title: 'AirPods Pro 2da Gen',
-            price: 249.99,
-            supplierPrice: 200,
-            marginPercentage: 25,
-            condition: 'NEW',
-            aestheticCondition: 10,
-            images: [{ path: '/uploads/products/product_3/airpods.jpg', filename: 'airpods.jpg', alt: 'AirPods Pro' }],
-            stock: 8
-          },
-          {
-            id: '4',
-            title: 'Samsung Galaxy S24 Ultra',
-            price: 1199.99,
-            supplierPrice: 900,
-            marginPercentage: 33,
-            condition: 'USED',
-            aestheticCondition: 8,
-            images: [{ path: '/uploads/products/product_4/samsung.jpg', filename: 'samsung.jpg', alt: 'Samsung Galaxy S24' }],
-            stock: 2
-          }
-        ]
-        setProducts(mockProducts)
+        setProducts([])
       }
     }
 
