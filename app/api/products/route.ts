@@ -230,6 +230,16 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     console.log('✅ [API] FormData obtenido correctamente')
     
+    // Log de todos los campos del FormData
+    console.log('🔍 [API] Campos del FormData:')
+    for (const [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        console.log(`  ${key}: File(${value.name}, ${value.size} bytes, ${value.type})`)
+      } else {
+        console.log(`  ${key}: ${value}`)
+      }
+    }
+    
     // Extraer datos del formulario
     console.log('🔍 [API] Extrayendo datos del formulario...')
     const title = formData.get('title') as string
@@ -326,13 +336,23 @@ export async function POST(request: NextRequest) {
     
     if (imageFiles.length > 0) {
       console.log('📤 [API] Iniciando subida de imágenes...')
-      const uploadResult = await uploadMultipleFiles(imageFiles, 'temp') // Usar ID temporal
-      console.log('📤 [API] Resultado de subida:', uploadResult)
+      console.log('📤 [API] Archivos a subir:', imageFiles.map(f => ({ name: f.name, size: f.size, type: f.type })))
       
-      if (!uploadResult.success) {
-        console.error('❌ [API] Error en subida de imágenes:', uploadResult.error)
+      try {
+        const uploadResult = await uploadMultipleFiles(imageFiles, 'temp') // Usar ID temporal
+        console.log('📤 [API] Resultado de subida:', uploadResult)
+        
+        if (!uploadResult.success) {
+          console.error('❌ [API] Error en subida de imágenes:', uploadResult.error)
+          return NextResponse.json(
+            { error: `Error subiendo imágenes: ${uploadResult.error}` },
+            { status: 500 }
+          )
+        }
+      } catch (uploadError) {
+        console.error('❌ [API] Error en subida de imágenes (catch):', uploadError)
         return NextResponse.json(
-          { error: uploadResult.error },
+          { error: `Error subiendo imágenes: ${uploadError instanceof Error ? uploadError.message : 'Unknown error'}` },
           { status: 500 }
         )
       }
