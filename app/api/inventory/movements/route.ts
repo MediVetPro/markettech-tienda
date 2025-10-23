@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       reason,
       reference,
       notes,
-      userId: decoded.userId
+      userId: decoded.user.userId
     })
 
     if (!result.success) {
