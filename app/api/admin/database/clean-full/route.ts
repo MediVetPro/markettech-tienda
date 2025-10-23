@@ -151,9 +151,6 @@ export async function POST(request: NextRequest) {
       await tx.savedComparison.deleteMany()
       await tx.cartItem.deleteMany()
       await tx.userCart.deleteMany()
-      await tx.inventoryAlert.deleteMany()
-      await tx.inventoryMovement.deleteMany()
-      await tx.inventory.deleteMany()
       await tx.productImage.deleteMany()
       await tx.product.deleteMany()
 

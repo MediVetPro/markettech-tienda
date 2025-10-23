@@ -72,7 +72,6 @@ model Product {
   updatedAt          DateTime        @updatedAt
   userId             String?
   cartItems          CartItem[]
-  inventory          Inventory[]
   orders             OrderItem[]
   images             ProductImage[]
   ratings            ProductRating[]
@@ -113,7 +112,6 @@ model Order {
   paymentMethod          String
   globalPaymentProfileId String?
   userId                 String?
-  inventoryMovements     InventoryMovement[]
   notifications          Notification[]
   items                  OrderItem[]
   globalPaymentProfile   GlobalPaymentProfile? @relation(fields: [globalPaymentProfileId], references: [id])
@@ -563,60 +561,3 @@ model ReviewVote {
 }
 
 
-model Inventory {
-  id            String              @id @default(cuid())
-  productId     String
-  sku           String              @unique
-  quantity      Int                 @default(0)
-  reserved      Int                 @default(0)
-  available     Int                 @default(0)
-  minStock      Int                 @default(5)
-  maxStock      Int?
-  reorderPoint  Int                 @default(10)
-  cost          Decimal
-  price         Decimal
-  location      String?
-  supplier      String?
-  supplierSku   String?
-  lastRestocked DateTime?
-  lastSold      DateTime?
-  isActive      Boolean             @default(true)
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
-  product       Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
-  alerts        InventoryAlert[]
-  movements     InventoryMovement[]
-
-  @@map("inventory")
-}
-
-model InventoryMovement {
-  id          String    @id @default(cuid())
-  inventoryId String
-  type        String
-  quantity    Int
-  reason      String?
-  reference   String?
-  notes       String?
-  userId      String?
-  createdAt   DateTime  @default(now())
-  inventory   Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
-  order       Order?    @relation(fields: [reference], references: [id])
-
-  @@map("inventory_movements")
-}
-
-model InventoryAlert {
-  id          String    @id @default(cuid())
-  inventoryId String
-  type        String
-  message     String
-  isRead      Boolean   @default(false)
-  isResolved  Boolean   @default(false)
-  resolvedAt  DateTime?
-  resolvedBy  String?
-  createdAt   DateTime  @default(now())
-  inventory   Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
-
-  @@map("inventory_alerts")
-}

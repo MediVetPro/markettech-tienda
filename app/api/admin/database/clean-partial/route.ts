@@ -78,14 +78,6 @@ export async function POST(request: NextRequest) {
         console.log('🗑️ Deletando carrinhos de usuários...')
         await tx.userCart.deleteMany()
         
-        console.log('🗑️ Deletando alertas de inventário...')
-        await tx.inventoryAlert.deleteMany()
-        
-        console.log('🗑️ Deletando movimientos de inventário...')
-        await tx.inventoryMovement.deleteMany()
-        
-        console.log('🗑️ Deletando inventário...')
-        await tx.inventory.deleteMany()
         
         console.log('🗑️ Deletando imagens de produtos...')
         await tx.productImage.deleteMany()
