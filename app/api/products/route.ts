@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { uploadMultipleFiles } from '@/lib/fileStorage'
+import { uploadMultipleToCloudinary } from '@/lib/cloudinary'
 import { canViewAllProducts, verifyToken } from '@/lib/auth'
 // import { validateProductData } from '@/lib/validation' // Removed to fix webidl-conversions error
 import { createProductWithImages, executeTransaction } from '@/lib/transactions'
@@ -336,30 +336,30 @@ export async function POST(request: NextRequest) {
     let imageData: Array<{ path: string; filename: string; alt?: string; order: number }> = []
     
     if (imageFiles.length > 0) {
-      console.log('📤 [API] Iniciando subida de imágenes...')
-      console.log('📤 [API] Archivos a subir:', imageFiles.map(f => ({ name: f.name, size: f.size, type: f.type })))
+      console.log('☁️ [API] Iniciando subida de imágenes a Cloudinary...')
+      console.log('☁️ [API] Archivos a subir:', imageFiles.map(f => ({ name: f.name, size: f.size, type: f.type })))
       
       try {
-        const uploadResult = await uploadMultipleFiles(imageFiles, 'temp') // Usar ID temporal
-        console.log('📤 [API] Resultado de subida:', uploadResult)
+        const uploadResult = await uploadMultipleToCloudinary(imageFiles, 'products')
+        console.log('☁️ [API] Resultado de subida a Cloudinary:', uploadResult)
         
         if (!uploadResult.success) {
-          console.error('❌ [API] Error en subida de imágenes:', uploadResult.error)
+          console.error('❌ [API] Error en subida de imágenes a Cloudinary:', uploadResult.error)
           return NextResponse.json(
             { error: `Error subiendo imágenes: ${uploadResult.error}` },
             { status: 500 }
           )
         }
         
-        // Preparar datos de imágenes
+        // Preparar datos de imágenes con URLs de Cloudinary
         imageData = uploadResult.results!.map((result: any, index: number) => ({
-          path: result.path,
-          filename: result.filename,
+          path: result.url, // URL de Cloudinary
+          filename: result.public_id, // Public ID de Cloudinary
           alt: `Imagen ${index + 1}`,
           order: index
         }))
       } catch (uploadError) {
-        console.error('❌ [API] Error en subida de imágenes (catch):', uploadError)
+        console.error('❌ [API] Error en subida de imágenes a Cloudinary (catch):', uploadError)
         return NextResponse.json(
           { error: `Error subiendo imágenes: ${uploadError instanceof Error ? uploadError.message : 'Unknown error'}` },
           { status: 500 }

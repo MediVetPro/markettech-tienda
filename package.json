@@ -53,6 +53,7 @@
     "axios": "^1.12.2",
     "bcryptjs": "^2.4.3",
     "canvas": "^3.2.0",
+    "cloudinary": "^2.8.0",
     "dompurify": "^3.3.0",
     "dotenv": "^17.2.3",
     "eslint": "^8",
