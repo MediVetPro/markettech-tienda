@@ -222,19 +222,12 @@ export async function generateInventoryReport(): Promise<InventoryReport> {
   try {
     console.log('📦 [REPORTS] Generando reporte de inventario...')
 
-    // Obtener todos los productos con inventario
-    const products = await prisma.product.findMany({
-      include: {
-        inventory: true
-      }
-    })
+    // Obtener todos los productos (inventory system removed)
+    const products = await prisma.product.findMany()
 
     // Calcular métricas básicas
     const totalProducts = products.length
-    const totalValue = products.reduce((sum, product) => {
-      const inventory = product.inventory[0]
-      return sum + (inventory ? inventory.quantity * inventory.cost.toNumber() : 0)
-    }, 0)
+    const totalValue = 0 // No inventory system
 
     // Productos con stock bajo o agotado
     let lowStockItems = 0
@@ -247,30 +240,7 @@ export async function generateInventoryReport(): Promise<InventoryReport> {
       status: 'LOW' | 'OUT'
     }> = []
 
-    products.forEach(product => {
-      const inventory = product.inventory[0]
-      if (inventory) {
-        if (inventory.quantity <= 0) {
-          outOfStockItems++
-          stockAlerts.push({
-            productId: product.id,
-            title: product.title,
-            currentStock: inventory.quantity,
-            minStock: inventory.minStock,
-            status: 'OUT'
-          })
-        } else if (inventory.quantity <= inventory.minStock) {
-          lowStockItems++
-          stockAlerts.push({
-            productId: product.id,
-            title: product.title,
-            currentStock: inventory.quantity,
-            minStock: inventory.minStock,
-            status: 'LOW'
-          })
-        }
-      }
-    })
+    // No inventory tracking available - inventory system removed
 
     // Productos más vendidos - obtener datos de ventas por separado
     const orderItems = await prisma.orderItem.findMany({
