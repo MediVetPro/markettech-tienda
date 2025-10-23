@@ -248,11 +248,11 @@ export async function POST(request: NextRequest) {
     }
     
     // Validación simple de datos del producto
-    if (!productData.name || !productData.price || productData.price <= 0) {
+    if (!productData.title || !productData.price || parseFloat(productData.price) <= 0) {
       console.error('❌ [API] Datos del producto inválidos')
       return NextResponse.json(
         { 
-          error: 'Datos del producto inválidos: nombre y precio son requeridos'
+          error: 'Datos del producto inválidos: título y precio son requeridos'
         },
         { status: 400 }
       )
@@ -330,17 +330,17 @@ export async function POST(request: NextRequest) {
     console.log('💾 [API] Creando producto con imágenes usando transacción...')
     const { product, images } = await createProductWithImages(
       {
-        title: sanitizedData.title,
-        description: sanitizedData.description,
+        title: productData.title,
+        description: productData.description,
         price: priceNum,
         supplierPrice: supplierPriceNum,
         marginPercentage,
         previousPrice: previousPriceValue,
         condition,
-        aestheticCondition: sanitizedData.aestheticCondition,
-        specifications: sanitizedData.specifications,
-        categories: sanitizedData.categories || null,
-        stock: sanitizedData.stock,
+        aestheticCondition: productData.aestheticCondition,
+        specifications: productData.specifications,
+        categories: productData.categories || null,
+        stock: productData.stock,
         status,
         manufacturerCode: finalManufacturerCode,
         manufacturer: manufacturer || null,
