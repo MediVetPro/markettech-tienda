@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const userId = decoded.userId
+    const userId = decoded.user.userId
     const { roomId } = await request.json()
 
     if (!roomId) {
@@ -153,7 +153,7 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    const userId = decoded.userId
+    const userId = decoded.user.userId
     const { searchParams } = request.nextUrl
     const roomId = searchParams.get('roomId')
 

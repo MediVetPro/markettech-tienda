@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const userId = decoded.userId
+    const userId = decoded.user.userId
     const { searchParams } = request.nextUrl
     const category = searchParams.get('category')
     const type = searchParams.get('type')
@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const userId = decoded.userId
+    const userId = decoded.user.userId
     const { name, description, type, category, isPrivate } = await request.json()
 
     if (!name) {

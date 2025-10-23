@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const userId = decoded.userId
+    const userId = decoded.user.userId
     const { 
       productId, 
       orderId, 

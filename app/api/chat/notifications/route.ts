@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const userId = decoded.userId
+    const userId = decoded.user.userId
     const { searchParams } = request.nextUrl
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
@@ -178,7 +178,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const userId = decoded.userId
+    const userId = decoded.user.userId
     const { roomId } = await request.json()
 
     if (!roomId) {

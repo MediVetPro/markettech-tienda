@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const userId = decoded.userId
+    const userId = decoded.user.userId
     const { couponCode, orderId, orderAmount, items } = await request.json()
 
     if (!couponCode || !orderId) {

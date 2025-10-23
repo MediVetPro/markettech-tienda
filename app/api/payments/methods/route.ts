@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const userId = decoded.userId
+    const userId = decoded.user.userId
 
     console.log('💳 [PAYMENT_METHODS] Obteniendo métodos de pago para usuario:', userId)
 
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const userId = decoded.userId
+    const userId = decoded.user.userId
     const { 
       provider, 
       providerId, 
