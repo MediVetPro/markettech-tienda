@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Token inválido o expirado' }, { status: 401 })
     }
     
-    const userId = decoded.user.userId
+    const userId = decoded.userId
     console.log('👤 User ID:', userId)
 
     const body = await request.json()

@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const userId = decoded.user.userId
+    const userId = decoded.userId
 
     console.log('🔔 [NOTIFICATION_PREFS] Obteniendo preferencias para usuario:', userId)
 
@@ -94,7 +94,7 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    const userId = decoded.user.userId
+    const userId = decoded.userId
     const { preferences } = await request.json()
 
     if (!preferences || typeof preferences !== 'object') {
@@ -195,7 +195,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const userId = decoded.user.userId
+    const userId = decoded.userId
 
     console.log('🔔 [NOTIFICATION_PREFS] Creando preferencias por defecto para usuario:', userId)
 
