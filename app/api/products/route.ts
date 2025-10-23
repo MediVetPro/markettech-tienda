@@ -201,6 +201,8 @@ export async function POST(request: NextRequest) {
       const jwt = require('jsonwebtoken')
       const jwtSecret = process.env.JWT_SECRET
       
+      console.log('🔍 [API] JWT_SECRET check:', jwtSecret ? 'Configurado' : 'No configurado')
+      
       if (!jwtSecret) {
         console.error('❌ [API] JWT_SECRET no configurado')
         return NextResponse.json(
