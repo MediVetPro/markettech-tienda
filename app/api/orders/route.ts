@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
 
       // Obtener información del usuario para verificar su rol
       const user = await prisma.user.findUnique({
-        where: { id: decoded.userId },
+        where: { id: decoded.user.userId },
         select: { role: true }
       })
 
@@ -113,9 +113,9 @@ export async function GET(request: NextRequest) {
 
       // Filtrar solo las órdenes del usuario autenticado
       whereClause = {
-        userId: decoded.userId
+        userId: decoded.user.userId
       }
-      console.log('🔍 [API] Filtrando órdenes para usuario:', decoded.userId)
+      console.log('🔍 [API] Filtrando órdenes para usuario:', decoded.user.userId)
     }
 
     const orders = await prisma.order.findMany({
