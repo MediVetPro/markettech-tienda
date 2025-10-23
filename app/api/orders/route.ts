@@ -106,12 +106,21 @@ export async function GET(request: NextRequest) {
       let decoded: any
       
       try {
-        decoded = jwt.verify(token, process.env.JWT_SECRET!)
+        const jwtSecret = process.env.JWT_SECRET
+        if (!jwtSecret) {
+          console.error('❌ [API] JWT_SECRET no configurado')
+          return NextResponse.json(
+            { error: 'Configuración de servidor incorrecta' },
+            { status: 500 }
+          )
+        }
+        
+        decoded = jwt.verify(token, jwtSecret)
         console.log('🔍 [API] Token decodificado:', { userId: decoded.userId, email: decoded.email, role: decoded.role })
       } catch (error) {
         console.error('❌ [API] Error verificando token:', error)
         return NextResponse.json(
-          { error: 'Token inválido' },
+          { error: 'Token inválido o expirado' },
           { status: 401 }
         )
       }

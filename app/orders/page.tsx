@@ -56,27 +56,41 @@ export default function OrdersPage() {
       const token = localStorage.getItem('smartesh_token')
       
       if (!token) {
+        console.error('❌ [ORDERS] No hay token de autenticación')
         setError('Não há token de autenticação')
         return
       }
 
+      console.log('🔍 [ORDERS] Enviando petición con token:', token.substring(0, 20) + '...')
       const response = await fetch('/api/orders?user=true', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       })
+      
+      console.log('🔍 [ORDERS] Respuesta recibida:', response.status, response.statusText)
 
       if (response.ok) {
         const data = await response.json()
         setOrders(data.orders || [])
         setError(null) // Limpiar cualquier error previo
-        console.log('📦 Pedidos carregados:', data.orders)
+        console.log('📦 Pedidos carregados:', data.orders?.length || 0)
       } else {
         const errorData = await response.json()
         console.error('❌ [API] Error cargando pedidos:', response.status, errorData)
         
         if (response.status === 401) {
+          // Verificar si es realmente un problema de autenticación o solo no hay pedidos
+          console.log('🔍 [ORDERS] Error 401 - verificando si es problema de autenticación')
+          
+          // Si el token existe pero la API devuelve 401, puede ser que el token esté expirado
+          // o que haya un problema con la validación del token
           setError('Sessão expirada. Por favor, faça login novamente.')
+          
+          // Limpiar datos de sesión
+          localStorage.removeItem('smartesh_token')
+          localStorage.removeItem('smartesh_user')
+          
           // Redirigir al login después de un breve delay
           setTimeout(() => {
             router.push('/login')
