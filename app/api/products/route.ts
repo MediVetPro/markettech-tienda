@@ -232,7 +232,8 @@ export async function POST(request: NextRequest) {
     
     // Log de todos los campos del FormData
     console.log('🔍 [API] Campos del FormData:')
-    for (const [key, value] of formData.entries()) {
+    const formDataEntries = Array.from(formData.entries())
+    for (const [key, value] of formDataEntries) {
       if (value instanceof File) {
         console.log(`  ${key}: File(${value.name}, ${value.size} bytes, ${value.type})`)
       } else {
@@ -349,6 +350,14 @@ export async function POST(request: NextRequest) {
             { status: 500 }
           )
         }
+        
+        // Preparar datos de imágenes
+        imageData = uploadResult.results!.map((result: any, index: number) => ({
+          path: result.path,
+          filename: result.filename,
+          alt: `Imagen ${index + 1}`,
+          order: index
+        }))
       } catch (uploadError) {
         console.error('❌ [API] Error en subida de imágenes (catch):', uploadError)
         return NextResponse.json(
@@ -356,14 +365,6 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         )
       }
-      
-      // Preparar datos de imágenes
-      imageData = uploadResult.results!.map((result, index) => ({
-        path: result.path,
-        filename: result.filename,
-        alt: `Imagen ${index + 1}`,
-        order: index
-      }))
     }
 
     // Crear producto con imágenes usando transacción
