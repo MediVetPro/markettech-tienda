@@ -135,7 +135,10 @@ export async function GET(request: NextRequest) {
     })
 
     console.log('✅ [API] Órdenes devueltas:', orders.length)
-    return NextResponse.json({ orders })
+    return NextResponse.json({ 
+      orders: orders || [],
+      message: orders.length === 0 ? 'No hay pedidos disponibles' : 'Pedidos cargados exitosamente'
+    })
   } catch (error) {
     console.error('Error fetching orders:', error)
     return NextResponse.json(

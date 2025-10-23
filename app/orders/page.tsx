@@ -69,9 +69,11 @@ export default function OrdersPage() {
       if (response.ok) {
         const data = await response.json()
         setOrders(data.orders || [])
+        setError(null) // Limpiar cualquier error previo
         console.log('📦 Pedidos carregados:', data.orders)
       } else {
-        setError('Erro ao carregar os pedidos')
+        const errorData = await response.json()
+        setError(errorData.message || 'Erro ao carregar os pedidos')
       }
     } catch (error) {
       console.error('Error loading orders:', error)
