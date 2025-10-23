@@ -200,7 +200,7 @@ export async function POST(request: NextRequest) {
     try {
       const jwt = require('jsonwebtoken')
       const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any
-      userId = decoded.userId
+      userId = decoded.user.userId
     } catch (error) {
       console.error('Error verifying token:', error)
       return NextResponse.json({ error: 'Token inválido' }, { status: 401 })

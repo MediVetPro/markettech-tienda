@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
 
     console.log('💳 [HISTORY] Obteniendo historial de pagos para pasarela:', gateway)
 
-    const result = await getPaymentHistoryByGateway(gateway, decoded.userId!)
+    const result = await getPaymentHistoryByGateway(gateway, decoded.user.userId!)
 
     if (!result.success) {
       return NextResponse.json(
