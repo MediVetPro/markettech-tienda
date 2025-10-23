@@ -273,8 +273,7 @@ export async function generateInventoryReport(): Promise<InventoryReport> {
     
     products.forEach(product => {
       const categories = product.categories?.split(',') || ['Sin categoría']
-      const inventory = product.inventory[0]
-      const value = inventory ? inventory.quantity * inventory.cost.toNumber() : 0
+      const value = 0 // No inventory system
       
       categories.forEach(category => {
         const trimmedCategory = category.trim()
